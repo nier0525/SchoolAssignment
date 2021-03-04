@@ -1,0 +1,117 @@
+#include <windows.h> // 윈도우 헤더파일
+
+LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM); // CALLBACK 매크로
+HINSTANCE g_hinst;   // 인스턴스 핸들
+LPCTSTR lpszClass = TEXT("심재철_2015031090"); // 제목 표시물에 표시되는 내용
+
+
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdParam, int nCmdShow) // main 함수
+{
+	HWND hWnd; // 윈도우 핸들 선언
+	MSG Message; // 메세지 구조체 변수 선언
+	WNDCLASS WndClass; // Windows Class 구조체 변수 선언
+
+	g_hinst = hInstance;
+	// hInstance 값을 외부에서도 사용할 수 있도록 전역변수에 값을 저장
+
+	WndClass.cbClsExtra = 0; // 예약 영역. 지금은 사용 X
+	WndClass.cbWndExtra = 0; // 예약 영역
+	WndClass.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH); // 윈도우의 배경 색상을 지정
+	WndClass.hCursor = LoadCursor(NULL, IDC_ARROW); // 윈도우의 마우스 포인터 모양을 지정
+	WndClass.hIcon = LoadIcon(NULL, IDI_HAND); // 윈도우의 커서 모양 지정
+	WndClass.hInstance = hInstance; // 윈도우 클래스를 등록하는 프로그램
+	WndClass.lpfnWndProc = WndProc; // 윈도우 메세지 처리 함수 지정
+	WndClass.lpszClassName = lpszClass; // 윈도우 클래스의 이름 지정
+	WndClass.lpszMenuName = NULL; // 이 프로그램의 메뉴 지정
+	WndClass.style = CS_HREDRAW | CS_DBLCLKS | CS_VREDRAW; // 윈도우의 스타일을 정의
+
+	RegisterClass(&WndClass); // WNDCLASS 구조체의 번지를 전달
+
+	// 윈도우를 생성하고 창에 표시하는 기능을 수행
+	hWnd = CreateWindow(lpszClass, lpszClass, WS_OVERLAPPEDWINDOW, /*CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT*/
+		300, 100, 800, 600, NULL, (HMENU)NULL, hInstance, NULL);
+
+	ShowWindow(hWnd, nCmdShow);
+
+	// 메세지 루프를 실행
+	while (GetMessage(&Message, NULL, 0, 0)) {  // Queue 에 있는 메시지를
+		TranslateMessage(&Message); // 키보드를 입력 메시지를 가공하여 프로그램을
+									// 사용할 수 있도록
+		DispatchMessage(&Message);  // 메세지를 윈도우의 메세지 처리 함수
+
+	}
+
+	return (int)Message.wParam; // 탈출 코드. 프로그램 종료
+}
+#include <math.h>
+#define BSIZE 40
+
+double Lengthpts(int x1, int y1, int x2, int y2) {
+	return (sqrt((float)((x2 - x1)*(x2 - x1) + (y2 - y1)*(y2 - y1)))); // 두 좌표간의 거리 계산
+}
+BOOL InCircle(int x, int y, int mx, int my) {
+	if (Lengthpts(x, y, mx, my) < BSIZE) return TRUE;
+	else return FALSE;
+}
+LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
+{
+	HDC hdc;
+	PAINTSTRUCT ps;
+	static int x, y; 
+	static int x1, y1;
+	static BOOL Selection;
+	int mx, my;
+
+	switch (iMessage) {
+
+	case WM_CREATE:
+		x = 150; y = 150; // 원형 좌표
+		x1 = 500; y1 = 500; // 사각형 좌표
+		Selection = FALSE;
+		break;
+
+	case WM_PAINT:
+		hdc = BeginPaint(hWnd, &ps);
+		Rectangle(hdc, x1 - BSIZE, y1 - BSIZE, x1 + BSIZE, y1 + BSIZE);
+		//if(Selection)
+		//Rectangle(hdc, x - BSIZE, y - BSIZE, x + BSIZE, y + BSIZE);
+		Ellipse(hdc, x - BSIZE, y - BSIZE, x + BSIZE, y + BSIZE);
+		EndPaint(hWnd, &ps);
+		break;
+
+	case WM_LBUTTONDOWN:
+		mx = LOWORD(lParam);
+		my = HIWORD(lParam);
+		if (InCircle(x, y, mx, my)) Selection = TRUE;
+		InvalidateRect(hWnd, NULL, TRUE);
+		break;
+
+	case WM_LBUTTONUP:
+		Selection = FALSE;
+		InvalidateRect(hWnd, NULL, TRUE);
+
+		break;
+
+	case WM_MOUSEMOVE: // 마우스로 원의 퐈표를 마우스 좌표를 받아 움직이는 함수
+		mx = LOWORD(lParam);
+		my = HIWORD(lParam);
+		if (Selection)
+		{
+			x = mx;
+			y = my;
+			InvalidateRect(hWnd, NULL, TRUE);
+		}
+		if (InCircle(x1, y1, mx, my) && x == x1 && y == y1) // 원과 사각형의 좌표가 완전히 일치하는 경우
+		{
+			MessageBox(hWnd, TEXT("네모와 겹쳤습니다"), TEXT("뚜둥"), MB_YESNO); // 메세지박스 출현
+		}
+		break;
+
+
+	case WM_DESTROY:
+		PostQuitMessage(0);
+		return 0;
+
+	}
+	return (DefWindowProc(hWnd, iMessage, wParam, lParam));
+}

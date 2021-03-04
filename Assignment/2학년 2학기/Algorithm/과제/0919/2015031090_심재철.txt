@@ -1,0 +1,98 @@
+#include <stdio.h>	
+#include <stdlib.h>
+#include <conio.h>
+
+#define MAXSIZE 10
+#define COINMAX 32000
+#define NODATA 0
+#define ERROR -1
+
+void CoinMove(int);
+
+int main() {	
+	int testcase = 0;
+	int num = 0;
+
+	printf("테스트 케이스 : ");
+	scanf("%d", &testcase);
+	printf("\n");
+
+	while (testcase != 0) {
+
+		printf("주머니 갯수 : ");
+		scanf("%d", &num);
+
+		if (num >= MAXSIZE) {
+			printf("주머니의 최대 10개 까지만 생성할 수 있습니다.\n");
+		}
+
+		else if (num <= NODATA + 1) {
+			printf("최소 2 개 이상 주머니를 생성해야 합니다.\n");
+		}
+
+		else {
+			CoinMove(num);
+			testcase--;
+		}
+
+		printf("\n\n아무 키나 누르세요. . .");
+
+		if (getch()) {
+			if (testcase != 0) {
+				system("cls");
+				printf("테스트 케이스 : %d\n\n", testcase);
+			}
+		}
+	}
+}
+
+void CoinMove(int count) {
+	int Arr[MAXSIZE];
+	int Coin = 0;
+	float value = 0;
+	int move = 0;
+
+	for (int i = 0; i < MAXSIZE; i++) {
+		Arr[i] = 0;
+	}
+
+	for (int i = 0; i < count; i++) {
+		printf("%d 번째 주머니의 동전 갯수 : ", i + 1);
+		scanf("%d", &Coin);
+
+		if (Coin >= COINMAX) {
+			printf("한 주머니에 넣을 수 있는 동전은 최대 32000 개입니다.\n");
+			i--;
+		}
+
+		else if (Coin <= NODATA) {
+			printf("주머니에는 최소 1 개 이상 동전을 넣어야 합니다.\n");
+			i--;
+		}
+
+		else {
+			Arr[i] = Coin;
+		}
+	}
+
+	for (int i = 0; i < count; i++) {
+		value += Arr[i];
+	}
+
+	value = value / count;
+
+	if (value - (int)value != 0) {
+		printf("\n평균 : %0.2f\n", value);
+		printf("\n동전을 균등하게 나눌 수 없습니다.\n");
+		return;
+	}
+
+	for (int i = 0; i < count; i++) {
+		if (Arr[i] > value) {
+			move += Arr[i] - value;
+		}
+	}
+
+	printf("\n평균 : %0.0f\n", value);
+	printf("최소 이동 개수 : %d", move);
+}

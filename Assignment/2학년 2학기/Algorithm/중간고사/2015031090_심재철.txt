@@ -1,0 +1,50 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+
+#include <conio.h>
+
+#define SIZE 6
+
+int main() {
+	int arr[SIZE] /*= { 10, 20, 15, 25, 10 , 20 }*/;
+	int num = 0;
+	int sum = 0;
+
+	srand(time(nullptr));
+
+	printf("현재 계단 점수 : ");
+
+	for (int i = 0; i < SIZE; i++) {
+		num = (rand() % 16) + 10;
+		arr[i] = num;
+
+		printf("%d ", arr[i]);
+	}
+
+	printf("\n");
+
+	for (int i = 0; i < SIZE; i++) {
+		if (i > SIZE) {
+			sum += arr[i];
+		}
+
+		else {
+			if (arr[i] > arr[i + 1]) {
+				sum += arr[i];
+			}
+			else if (arr[i + 1] > arr[i]) {
+				i++;
+				sum += arr[i];
+			}
+		}
+
+		printf("\n%d 번째 계단\t%d", i + 1, arr[i]);
+	}
+	printf("\n\n최대값 : %d\n", sum);
+
+	printf("\n아무 키나 누르면 프로그램이 종료됩니다. . .");
+	if (getch()) {
+		return 0;
+	}
+}

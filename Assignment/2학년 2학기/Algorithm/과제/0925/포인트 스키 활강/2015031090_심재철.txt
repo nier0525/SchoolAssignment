@@ -1,0 +1,100 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+#include <conio.h>
+
+#define MAX 100
+
+#define max(a,b) ((a > b) ? a : b)
+
+void SettingPoint();
+
+int main() {
+	bool flug = false;
+
+	while (!flug) {
+		srand((unsigned int)time(NULL));
+
+		printf("[ 포인트 스키 활강 알고리즘 ]\n\n");
+		printf("1. 시작\n2. 종료\n");
+		printf("\n선택 : ");
+		
+		int num = 0;
+		scanf("%d", &num);
+
+		switch (num) {
+		case 1:
+			SettingPoint();
+			break;
+
+		case 2:
+			flug = true;
+			break;
+
+		default:
+			system("cls");
+			break;
+		}
+	}
+
+	printf("\n프로그램을 종료합니다.\n");
+	return 0;
+}
+
+void SettingPoint() {
+	system("cls");
+
+	int Arr[MAX][MAX];
+	int count = 0;
+
+	for (int i = 0; i < MAX; i++) {
+		for (int j = 0; j < MAX; j++) {
+			Arr[i][j] = 0;
+		}
+	}
+
+	printf("깃발 배치 행렬 수(MAX 100) : ");
+	scanf("%d", &count);
+
+	printf("\n");
+
+	if (count > MAX) {
+		printf("Max Size Over !\n");
+		if (getch()) {
+			system("cls");
+			return;
+		}
+	}
+
+	for (int i = 0; i < count; i++) {
+		for (int j = 0; j <= i; j++) {
+			Arr[i][j] = rand() % 10;
+			printf("%3d", Arr[i][j]);
+		}
+		printf("\n");
+	}
+
+	printf("\n\n");
+
+	for (int i = count - 2; i >= 0; i--) {
+		for (int j = 0; j <= i; j++) {
+			Arr[i][j] += max(Arr[i + 1][j], Arr[i + 1][j + 1]);
+
+			/*if (Arr[i + 1][j] >= Arr[i + 1][j + 1]) {
+				Arr[i][j] += Arr[i + 1][j];
+			}
+			else {
+				Arr[i][j] += Arr[i + 1][j + 1];
+			}*/
+
+			printf("Solutions[%d][%d] : %d\n", i, j, Arr[i][j]);
+		}
+		printf("\n");
+	}
+
+	printf("\n\n아무 키나 누르세요 . . .");
+	if (getch()) {
+		system("cls");
+		return;
+	}
+}

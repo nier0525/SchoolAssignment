@@ -1,0 +1,333 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <conio.h>
+
+#define MAX 36
+#define SIZE 7
+
+#define NODATA 0
+#define SELELT 1
+
+enum { A = 10, B, C, D, E, F };
+
+void Add(int(*Arr)[SIZE], int*);
+void Del(int(*Arr)[SIZE], int*);
+void Change(int(*Arr)[SIZE], int*);
+
+void Show(int(*Arr)[SIZE], int*);
+
+void Translate(char, char, int* , int*);
+void DisPlay(int(*Arr)[SIZE], int*);
+
+int main() {
+
+	int Arr[SIZE][SIZE];	// 2차원 배열 리스트
+	int num = 0;	// 메뉴 선택
+
+	int Count = 0;	// 현재 예약된 좌석 수
+
+	bool EndFlug = false;	// 종료 체크 bool
+
+	// 배열 초기화
+	for (int i = 0; i < SIZE; i++) {
+		for (int j = 0; j < SIZE; j++) {
+			Arr[i][j] = NODATA;
+		}
+	}
+
+	// 배열 맨 앞 자리에 A~F 을 출력할 위치 지정
+	for (int i = 1; i < SIZE; i++) {
+		Arr[i][0] = i + 9;
+	}
+
+	while (1) {
+		printf("극장좌석 관리 프로그램\n\n");
+		printf("1. 좌석 예약\n2. 예약 취소\n3. 좌석 변경\n4. 좌석 현황\n5. 종료\n\n");
+		printf("선택 : ");
+
+		scanf("%d", &num);
+
+		switch (num) {
+		case 1:
+			Add(Arr, &Count);	// 예약
+			break;
+
+		case 2:
+			Del(Arr, &Count);		// 취소
+			break;
+
+		case 3:
+			Change(Arr, &Count);	// 변경
+			break;
+
+		case 4:
+			Show(Arr, &Count);		// 확인
+			break;
+
+		case 5:
+			EndFlug = true;		// 종료
+			break; 
+		}
+
+		if (EndFlug) {
+			break;	// while 문 탈출
+		}
+	}
+
+	return 0;
+}
+
+
+// 좌석 예약 함수
+void Add(int(*Arr)[SIZE], int* Count) {
+	DisPlay(Arr, Count);
+	char num[128] = {};
+	int a, b;
+
+	printf("좌석번호 입력은 두자리<ex : a5>\n");
+	printf("예약할 좌석 번호를 입력하세요 : ");
+
+	scanf("%s", &num);
+
+	if (num[2] != '\0') {
+		printf("잘못된 입력입니다.\n");
+		printf("계속하려면 아무 키나 누르십시오 . . . ");
+		if (getch()) {
+			system("cls");
+			return;
+		}
+	}
+
+	Translate(num[0], num[1], &a, &b);
+
+	if (a <= NODATA || b <= NODATA || a >= SIZE || b >= SIZE) {
+		printf("잘못된 입력입니다.\n");
+		printf("계속하려면 아무 키나 누르십시오 . . . ");
+		if (getch()) {
+			system("cls");
+			return;
+		}
+	}
+	if (Arr[a][b] == SELELT) {
+		printf("이미 예약된 자리입니다. 다른 자리를 예약해주세요.\n");
+		printf("계속하려면 아무 키나 누르십시오 . . . ");
+		if (getch()) {
+			system("cls");
+			return;
+		}
+	}
+
+	Arr[a][b] = SELELT;
+	*Count += 1;
+
+	DisPlay(Arr, Count);
+
+	printf("\n%s 좌석이 정상적으로 예약되었습니다.\n", num);
+	printf("계속하려면 아무 키나 누르십시오 . . . ");
+
+	if (getch()) {
+		system("cls");
+		return;
+	}
+}
+
+// 좌석 취소 함수
+void Del(int(*Arr)[SIZE], int* Count) {
+	DisPlay(Arr, Count);
+
+	char num[128] = {};
+	int a, b;
+
+	printf("좌석번호 입력은 두자리<ex : a5>\n");
+	printf("취소할 좌석 번호를 입력하세요 : ");
+
+	scanf("%s", &num);
+
+	if (num[2] != '\0') {
+		printf("잘못된 입력입니다.\n");
+		printf("계속하려면 아무 키나 누르십시오 . . . ");
+		if (getch()) {
+			system("cls");
+			return;
+		}
+	}
+
+	Translate(num[0], num[1], &a, &b);
+
+	if (Arr[a][b] != SELELT) {
+		printf("취소할 예약 좌석을 찾지 못했습니다.\n");
+		printf("계속하려면 아무 키나 누르십시오 . . . ");
+		if (getch()) {
+			system("cls");
+			return;
+		}
+	}
+
+	Arr[a][b] = 0;
+	*Count -= 1;
+
+	DisPlay(Arr, Count);
+
+	printf("\n%s 좌석이 정상적으로 예약이 취소 되었습니다.\n", num);
+	printf("계속하려면 아무 키나 누르십시오 . . . ");
+
+	if (getch()) {
+		system("cls");
+		return;
+	}
+}
+
+// 좌석 변경 함수
+void Change(int(*Arr)[SIZE], int* Count) {
+	DisPlay(Arr, Count);
+
+	char num[128] = {};
+	char num2[128] = {};
+	int a, b;
+	int i, j;
+
+	printf("좌석번호 입력은 두자리<ex : a5>\n");
+	printf("기존에 예약한 좌석 번호를 입력하세요 : ");
+
+	scanf("%s", &num);
+
+	if (num[2] != '\0') {
+		printf("잘못된 입력입니다.\n");
+		printf("계속하려면 아무 키나 누르십시오 . . . ");
+		if (getch()) {
+			system("cls");
+			return;
+		}
+	}
+
+	Translate(num[0], num[1], &a, &b);
+
+	if (Arr[a][b] != SELELT) {
+		printf("예약된 좌석이 아니기 때문에 변경이 불가능합니다.\n");
+		printf("계속하려면 아무 키나 누르십시오 . . . ");
+		if (getch()) {
+			system("cls");
+			return;
+		}
+	}
+
+	printf("변경할 좌석 번호를 입력하세요 : ");
+
+	scanf("%s", &num2);
+
+	if (num[2] != '\0') {
+		printf("잘못된 입력입니다.\n");
+		printf("계속하려면 아무 키나 누르십시오 . . . ");
+		if (getch()) {
+			system("cls");
+			return;
+		}
+	}
+
+	Translate(num2[0], num2[1], &i, &j);
+
+
+	if (i <= NODATA || j <= NODATA || i >= SIZE || j >= SIZE) {
+		printf("잘못된 입력입니다.\n");
+		printf("계속하려면 아무 키나 누르십시오 . . . ");
+		if (getch()) {
+			system("cls");
+			return;
+		}
+	}
+
+	if (Arr[i][j] == SELELT) {
+		printf("해당 좌석은 이미 예약되어 있는 좌석으로 변경이 불가능합니다.\n");
+		printf("계속하려면 아무 키나 누르십시오 . . . ");
+		if (getch()) {
+			system("cls");
+			return;
+		}
+	}
+
+	Arr[a][b] = NODATA;
+	Arr[i][j] = SELELT;
+
+	DisPlay(Arr, Count);
+
+	printf("\n%s 좌석이  %s 좌석으로 정상적으로 변경 되었습니다.\n", num, num2);
+	printf("계속하려면 아무 키나 누르십시오 . . . ");
+
+	if (getch()) {
+		system("cls");
+		return;
+	}
+}
+
+
+// 좌석 보기 함수
+void Show(int(*Arr)[SIZE], int* Count) {
+	DisPlay(Arr, Count);
+	printf("계속하려면 아무 키나 누르십시오 . . . ");
+
+	if (getch()) {
+		system("cls");
+		return;
+	}
+}
+
+// 아스키 코드값을 이용한 char -> int 캐스팅 함수
+void Translate(char char_a, char char_b, int* int_a, int* int_b) {
+	*int_a = (int)char_a - 96;
+	*int_b = (int)char_b - 48;
+}
+
+// 좌석 현황 함수
+void DisPlay(int(*Arr)[SIZE], int* Count) {
+	system("cls");
+
+	int temp = 0;
+
+	printf("현재 예약 상태는 다음과 같습니다\n\n");
+	printf("     1  2  3  4  5  6\n");
+	printf("---------------------");
+
+	for (int i = 0; i < SIZE; i++) {
+		for (int j = 0; j < SIZE; j++) {
+			switch (Arr[i][j])
+			{
+			case NODATA:
+				printf("   ");
+				break;
+
+			case SELELT:
+				printf("★ ");
+				break;
+
+			case A:
+				printf("A:  ");
+				break;
+
+			case B:
+				printf("B:  ");
+				break;
+
+			case C:
+				printf("C:  ");
+				break;
+
+			case D:
+				printf("D:  ");
+				break;
+
+			case E:
+				printf("E:  ");
+				break;
+
+			case F:
+				printf("F:  ");
+				break;
+			}	
+		}
+		printf("\n");
+	}
+	printf("\n전체좌석 수 : %d\n", MAX);
+	printf("예약좌석 수 : %d\n", *Count);
+	printf("잔여좌석 수 : %d\n", MAX - *Count);
+}

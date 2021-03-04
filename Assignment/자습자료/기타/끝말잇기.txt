@@ -1,0 +1,57 @@
+#include <iostream>
+#include <string>
+using namespace std;
+
+class player {
+	string name;
+public:
+	void setname() { cout << "플레이어의 이름을 입력하세요 >> "; cin >> name; }
+	string callname() { return name; }
+};
+
+class game {
+	int lastwordindex;
+	string one;
+	string to;
+public:
+	bool isE() {
+		lastwordindex = one.length();
+		if (one[lastwordindex - 2] == to[0] && one[lastwordindex - 1] == to[1]) {
+			changeword();
+			return 1;
+		}
+		else return 0;
+	}
+	void getword() { cin >> to; }
+	void changeword() { one = to; }
+	game() { lastwordindex = 0; one = "아버지"; }
+};
+
+int main() {
+
+	int numofplayer;
+	cout << "게임을 시작합니다." << endl << "게임에 참가하는 인원은 몇명입니까?";
+	cin >> numofplayer;
+	player *p = new player[numofplayer];
+
+	for (int i = 0; i < numofplayer; i++) {
+		p[i].setname();
+	}
+	cout << "===================================" << endl << " 시작하는 단어는 [ 아버지 ] 입니다. " 
+			<< endl << "===================================" << endl;
+	
+	int order = 0;
+	game gameover;
+	while (true) {
+		cout << p[order].callname() << " >> ";
+		gameover.getword();
+		if (gameover.isE() == 0) {
+			cout << " =====================게임 종료===================" << endl << p[order].callname()
+				<< "이(가) 졌습니다.";
+			break;
+		}
+		order++;
+		if (order >= numofplayer) order = 0;
+	}
+	delete[] p;
+}

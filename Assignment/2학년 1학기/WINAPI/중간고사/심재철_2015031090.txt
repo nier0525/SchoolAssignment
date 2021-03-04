@@ -1,0 +1,334 @@
+#include <windows.h>
+#include "resource.h"
+
+LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam);
+BOOL CALLBACK Dlg3(HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam);
+HINSTANCE hInst;
+
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLine, int nCmdShow)
+{
+	HWND 	 hwnd;
+	MSG 	 msg;
+	WNDCLASS WndClass;
+	hInst = hInstance;
+	WndClass.style = CS_HREDRAW | CS_VREDRAW;
+	WndClass.lpfnWndProc = WndProc;
+	WndClass.cbClsExtra = 0;
+	WndClass.cbWndExtra = 0;
+	WndClass.hInstance = hInstance;
+	WndClass.hIcon = LoadIcon(NULL, IDI_APPLICATION);
+	WndClass.hCursor = LoadCursor(NULL, IDC_ARROW);
+	WndClass.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);
+	WndClass.lpszMenuName = MAKEINTRESOURCE(IDR_MENU1);
+	WndClass.lpszClassName = "Window Class Name";
+
+	RegisterClass(&WndClass);
+	hwnd = CreateWindow("Window Class Name", "심재철_2015031090", WS_OVERLAPPEDWINDOW,
+		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, NULL,
+		NULL, hInstance, NULL);
+	ShowWindow(hwnd, nCmdShow);
+	UpdateWindow(hwnd);
+
+	while (GetMessage(&msg, NULL, 0, 0))
+	{
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
+	}
+	return (int)msg.wParam;
+}
+
+LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg,
+	WPARAM wParam, LPARAM lParam)
+{
+	switch (iMsg)
+	{
+	case WM_CREATE:
+		break;
+	case WM_COMMAND:
+		switch (LOWORD(wParam))
+		{
+		case ID_40001:	// 메뉴 디폴트 값
+			DialogBox(hInst, MAKEINTRESOURCE(IDD_DIALOG1), hwnd, Dlg3); // 다이얼 로그 박스 실행 함수
+			break;
+		}
+		break;
+
+	case WM_DESTROY:
+		PostQuitMessage(0);
+		break;
+	}
+	return DefWindowProc(hwnd, iMsg, wParam, lParam);
+}
+
+BOOL CALLBACK Dlg3(HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam)
+{
+	static TCHAR oper[5] = {"+"};	// 부등호 char 값
+	static int score = 0; // 버튼에 따라 대입되는 정수
+	static int f = 0, s = 0; // 첫번째 값과 두번째 값 저장할 정수
+	static int End = 0; // 첫번째 값과 두번째 값을 더한 값을 저장할 정수
+
+	switch (iMsg)
+	{
+	case WM_COMMAND:
+		switch (LOWORD(wParam))
+		{
+		case IDC_0: // 버튼 0
+			score = 0;
+
+			if (GetDlgItemInt(hDlg, first, nullptr, true) == false) {	// 첫번째 에디터 박스에 값이 없을 경우
+				f = score;	// f 정수에 score 값 대입
+				SetDlgItemInt(hDlg, first, score, true); // 첫번째 에디터 박스에 값을 넣음
+			}
+
+			else {	// 첫번재 에디터 박스에 값이 있을 경우
+				s = score;	// s 정수에 score 값 대입
+				SetDlgItemInt(hDlg, secord, score, true); // 두번째 에디터 박스에 값을 넣음
+			}
+
+			if (GetDlgItemInt(hDlg, end, nullptr, false)) { // 결과가 나온 상태에서 다시 버튼을 눌렀을 경우
+				SetDlgItemInt(hDlg, first, End, true); // 첫번째 에디터 박스에는 결과값을 출력
+				s = score; // s 정수에 score 값 대입
+				SetDlgItemInt(hDlg, secord, score, true); // 두번째 에디터 박스엔 score 값 출력
+			}
+			// 아래 버튼 1~9 까지 동일함
+			return 0;
+
+		case IDC_1: // 버튼 1
+			score = 1;
+
+			if (GetDlgItemInt(hDlg, first, nullptr, true) == false) {
+				f = score;
+				SetDlgItemInt(hDlg, first, score, true);
+			}
+
+			else {
+				s = score;
+				SetDlgItemInt(hDlg, secord, score, true);
+			}
+
+			if (GetDlgItemInt(hDlg, end, nullptr, false)) {
+				SetDlgItemInt(hDlg, first, End, true);
+				s = score;
+				SetDlgItemInt(hDlg, secord, score, true);
+			}
+			return 0;
+
+		case IDC_2: // 버튼 2
+			score = 2;
+
+			if (GetDlgItemInt(hDlg, first, nullptr, true) == false) {
+				f = score;
+				SetDlgItemInt(hDlg, first, score, true);
+			}
+
+			else {
+				s = score;
+				SetDlgItemInt(hDlg, secord, score, true);
+			}
+
+			if (GetDlgItemInt(hDlg, end, nullptr, false)) {
+				SetDlgItemInt(hDlg, first, End, true);
+				s = score;
+				SetDlgItemInt(hDlg, secord, score, true);
+			}
+			return 0;
+
+		case IDC_3: // 버튼 3
+			score = 3;
+
+			if (GetDlgItemInt(hDlg, first, nullptr, true) == false) {
+				f = score;
+				SetDlgItemInt(hDlg, first, score, true);
+			}
+
+			else {
+				s = score;
+				SetDlgItemInt(hDlg, secord, score, true);
+			}
+
+			if (GetDlgItemInt(hDlg, end, nullptr, false)) {
+				SetDlgItemInt(hDlg, first, End, true);
+				s = score;
+				SetDlgItemInt(hDlg, secord, score, true);
+			}
+			return 0;
+
+		case IDC_4: // 버튼 4
+			score = 4;
+
+			if (GetDlgItemInt(hDlg, first, nullptr, true) == false) {
+				f = score;
+				SetDlgItemInt(hDlg, first, score, true);
+			}
+
+			else {
+				s = score;
+				SetDlgItemInt(hDlg, secord, score, true);
+			}
+
+			if (GetDlgItemInt(hDlg, end, nullptr, false)) {
+				SetDlgItemInt(hDlg, first, End, true);
+				s = score;
+				SetDlgItemInt(hDlg, secord, score, true);
+			}
+			return 0;
+
+		case IDC_5: // 버튼 5
+			score = 5;
+
+			if (GetDlgItemInt(hDlg, first, nullptr, true) == false) {
+				f = score;
+				SetDlgItemInt(hDlg, first, score, true);
+			}
+
+			else {
+				s = score;
+				SetDlgItemInt(hDlg, secord, score, true);
+			}
+
+			if (GetDlgItemInt(hDlg, end, nullptr, false)) {
+				SetDlgItemInt(hDlg, first, End, true);
+				s = score;
+				SetDlgItemInt(hDlg, secord, score, true);
+			}
+			return 0;
+
+		case IDC_6: // 버튼 6
+			score = 6;
+
+			if (GetDlgItemInt(hDlg, first, nullptr, true) == false) {
+				f = score;
+				SetDlgItemInt(hDlg, first, score, true);
+			}
+
+			else {
+				s = score;
+				SetDlgItemInt(hDlg, secord, score, true);
+			}
+
+			if (GetDlgItemInt(hDlg, end, nullptr, false)) {
+				SetDlgItemInt(hDlg, first, End, true);
+				s = score;
+				SetDlgItemInt(hDlg, secord, score, true);
+			}
+			return 0;
+
+		case IDC_7: // 버튼 7
+			score = 7;
+
+			if (GetDlgItemInt(hDlg, first, nullptr, true) == false) {
+				f = score;
+				SetDlgItemInt(hDlg, first, score, true);
+			}
+
+			else {
+				s = score;
+				SetDlgItemInt(hDlg, secord, score, true);
+			}
+
+			if (GetDlgItemInt(hDlg, end, nullptr, false)) {
+				SetDlgItemInt(hDlg, first, End, true);
+				s = score;
+				SetDlgItemInt(hDlg, secord, score, true);
+			}
+			return 0;
+
+		case IDC_8: // 버튼 8
+			score = 8;
+
+			if (GetDlgItemInt(hDlg, first, nullptr, true) == false) {
+				f = score;
+				SetDlgItemInt(hDlg, first, score, true);
+			}
+
+			else {
+				s = score;
+				SetDlgItemInt(hDlg, secord, score, true);
+			}
+
+			if (GetDlgItemInt(hDlg, end, nullptr, false)) {
+				SetDlgItemInt(hDlg, first, End, true);
+				s = score;
+				SetDlgItemInt(hDlg, secord, score, true);
+			}
+			return 0;
+
+		case IDC_9: // 버튼 9
+			score = 9;
+
+			if (GetDlgItemInt(hDlg, first, nullptr, true) == false) {
+				f = score;
+				SetDlgItemInt(hDlg, first, score, true);
+			}
+
+			else {
+				s = score;
+				SetDlgItemInt(hDlg, secord, score, true);
+			}
+
+			if (GetDlgItemInt(hDlg, end, nullptr, false)) {
+				SetDlgItemInt(hDlg, first, End, true);
+				s = score;
+				SetDlgItemInt(hDlg, secord, score, true);
+			}
+			return 0;
+
+		case oper1:	// 더하기
+			wsprintf(oper, "+"); // oper char 값에 + 대입
+			SetDlgItemText(hDlg, IDC_OPER, oper); // 다이얼로그 static text 출력
+			// 아래 빼기,곱하기,나누기 역시 동일
+			return 0;
+	
+		case oper2: // 빼기
+			wsprintf(oper, "-");
+			SetDlgItemText(hDlg, IDC_OPER, oper);
+			return 0;
+	
+		case oper3: // 곱하기
+			wsprintf(oper, "*");
+			SetDlgItemText(hDlg, IDC_OPER, oper);
+			return 0;
+	
+		case oper4: // 나누기
+			wsprintf(oper, "/");
+			SetDlgItemText(hDlg, IDC_OPER, oper);
+			return 0;
+		
+		case oper5:
+			if (!strcmp(oper , "+")) { // oper 에 들어가 있는 값이 + 일 경우
+				End = f + s; // f 와 s 를 더한 값을 End 정수에 대입
+			}
+			// 아래 if 문은 빼기,곱하기,나누기 일 경우
+			if (!strcmp(oper, "-")) {
+				End = f - s;
+			}
+			if (!strcmp(oper, "*")) {
+				End = f * s;
+			}
+			if (!strcmp(oper, "/")) {
+				End = f / s;
+			}
+			SetDlgItemInt(hDlg, end, End, true); // end 에디터 박스에 End 값 출력
+			f = End; // f 에 결과값을 대입함으로써 결과값으로 추가적으로 연산이 가능하게 만듬
+			return 0;
+
+		case Clear: // 리셋
+			// 전부 초기화 시킴
+			SetDlgItemInt(hDlg, first, 0,  true);
+			SetDlgItemInt(hDlg, secord, 0, true);
+			SetDlgItemInt(hDlg, end, 0, true);
+
+			f = 0;
+			s = 0;
+			End = 0;
+
+			return 0;
+
+		case IDC_BUTTON1: // 종료
+			EndDialog(hDlg, 0);
+			break;
+		}
+		break;
+	}
+	return 0;
+}

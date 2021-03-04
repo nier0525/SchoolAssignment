@@ -1,0 +1,45 @@
+#include <stdio.h>
+#define SIZE 10
+
+void top_n(int *arr, int num);
+void swap(int*, int*);
+
+int main() {
+	int Arr[SIZE] = { 203,105,302,200,289,175,130,120,267,312 };
+	int num, i;
+
+	printf("상위 몇 개의 판매량을 구하겠습니까? : ");
+	scanf("%d", &num);
+
+	top_n(Arr, num);
+
+	printf("=============\n");
+	printf("판매량 Top %d\n", num);
+	printf("=============\n");
+	for (i = 0; i < num; i++) {
+		printf("    %d\n", Arr[i]);
+	}
+	printf("=============\n");
+
+	return 0;
+}
+
+void top_n(int *arr, int num) {
+	int i, j;
+
+	for (i = 0; i < num; i++) {
+		for (j = i; j < SIZE; j++) {
+			if (*(arr + i) < *(arr + j)) {
+				swap((arr + i), (arr + j));
+			}
+		}
+	}
+}
+
+void swap(int* a, int* b) {
+	int temp;
+
+	temp = *a;
+	*a = *b;
+	*b = temp;
+}

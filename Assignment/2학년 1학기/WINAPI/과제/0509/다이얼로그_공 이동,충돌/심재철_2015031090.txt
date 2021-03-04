@@ -1,0 +1,202 @@
+#include <windows.h>
+#include "resource.h"
+#include <math.h>
+
+LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam);
+BOOL CALLBACK MainDlgProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
+BOOL CALLBACK Dlg1(HWND hDlg1, UINT iMessage, WPARAM wParam, LPARAM lParam);
+
+HWND hDlgMain;
+HINSTANCE hInst;
+
+
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLine, int nCmdShow)
+{
+	HWND 	 hwnd;
+	MSG 	 msg;
+	WNDCLASS WndClass;
+	hInst = hInstance;
+	WndClass.style = CS_HREDRAW | CS_VREDRAW;
+	WndClass.lpfnWndProc = WndProc;
+	WndClass.cbClsExtra = 0;
+	WndClass.cbWndExtra = 0;
+	WndClass.hInstance = hInstance;
+	WndClass.hIcon = LoadIcon(NULL, IDI_APPLICATION);
+	WndClass.hCursor = LoadCursor(NULL, IDC_ARROW);
+	WndClass.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);
+	WndClass.lpszMenuName = MAKEINTRESOURCE(IDR_MENU1);
+	WndClass.lpszClassName = "Window Class Name";
+	RegisterClass(&WndClass);
+	hwnd = CreateWindow("Window Class Name", "Window Title Name",
+		WS_OVERLAPPEDWINDOW,
+		CW_USEDEFAULT,
+		CW_USEDEFAULT,
+		CW_USEDEFAULT,
+		CW_USEDEFAULT,
+		NULL,
+		NULL,
+		hInstance,
+		NULL
+	);
+	ShowWindow(hwnd, nCmdShow);
+	UpdateWindow(hwnd);
+	while (GetMessage(&msg, NULL, 0, 0))
+	{
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
+	}
+	return (int)msg.wParam;
+}
+
+
+#define SIZE 50
+
+void DrawBitmap(HDC hdc, int x, int y, int brx, int bry, HBITMAP hBitmap, int r, int g, int b) {
+	HDC MemDC;
+	HBITMAP OldBitMap;
+	int bx, by;
+	BITMAP bitmap;
+
+	MemDC = CreateCompatibleDC(hdc);
+	OldBitMap = (HBITMAP)SelectObject(MemDC, hBitmap);
+
+	GetObject(hBitmap, sizeof(BITMAP), &bitmap);
+	bx = bitmap.bmWidth;
+	by = bitmap.bmHeight;
+
+	GdiTransparentBlt(hdc, x, y, brx, bry, MemDC, 0, 0, bx, by, RGB(r, g, b));
+	//BitBlt(hdc, x, y, bx, by, MemDC, 0, 0, SRCCOPY);
+
+	SelectObject(MemDC, OldBitMap);
+	DeleteDC(MemDC);
+}
+
+double Lengthpts(int x1, int y1, int x2, int y2) {
+	return (sqrt((float)((x2 - x1)*(x2 - x1) + (y2 - y1)*(y2 - y1)))); // 두 좌표간의 거리 계산
+}
+
+BOOL InCircle(int x, int y, int mx, int my) {
+	if (Lengthpts(x, y, mx, my) < SIZE) return TRUE;
+	else return FALSE;
+}
+
+LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
+{
+	HWND hDlg = NULL;
+	
+	HDC hdc;
+	PAINTSTRUCT ps;
+	RECT rt;
+
+	static bool flug = false;
+	static HBITMAP boll, finish;
+	static int bx, by, fx, fy;
+
+	switch (iMsg)
+	{
+	case WM_CREATE:
+		boll = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_BITMAP2));
+		finish = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_BITMAP3));
+		bx = 0; by = 0;
+		fx = 800; fy = 500;
+		SetTimer(hwnd, 1, 50, nullptr);
+		break;
+		
+	case WM_PAINT:
+		hdc = BeginPaint(hwnd, &ps);
+		if (flug) {
+			DrawBitmap(hdc, bx, by, SIZE, SIZE, boll, 255, 255, 255);
+			DrawBitmap(hdc, fx, fy, SIZE * 2, SIZE * 2, finish, 255, 255, 255);
+			if (InCircle(bx, by, fx, fy)) {
+				flug = false;
+			}
+		}
+		EndPaint(hwnd, &ps);
+		break;
+
+	case WM_TIMER:
+		if (GetAsyncKeyState(VK_LEFT) & 0x8000) {
+			bx -= 15;
+		}
+		if (GetAsyncKeyState(VK_RIGHT) & 0x8000) {
+			bx += 15;
+		}
+		if (GetAsyncKeyState(VK_DOWN) & 0x8000) {
+			by += 15;
+		}
+		if (GetAsyncKeyState(VK_UP) & 0x8000) {
+			by -= 15;
+		}
+		InvalidateRect(hwnd, nullptr, true);
+		break;
+
+	case WM_COMMAND:
+		switch (LOWORD(wParam))
+		{
+		case ID_40001:
+			DialogBox(hInst, MAKEINTRESOURCE(IDD_DIALOG1), hwnd, MainDlgProc);
+			ShowWindow(hDlg, SW_SHOW);
+			break;
+
+		case ID_40002:
+			flug = true;
+			bx = 0; by = 0;
+			InvalidateRect(hwnd, nullptr, true);
+			break;
+		}
+		break;
+
+	case WM_DESTROY:
+		KillTimer(hwnd, 1);
+		DeleteObject(boll);
+		DeleteObject(finish);
+		PostQuitMessage(0);
+		break;
+	}
+	return DefWindowProc(hwnd, iMsg, wParam, lParam);
+}
+
+BOOL CALLBACK MainDlgProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
+{
+	HDC hdc;
+	PAINTSTRUCT ps;
+	RECT rt;
+	static HBITMAP bitmap;
+	static int x, y, xi, yi;
+
+	switch (iMessage) {
+	case WM_INITDIALOG:
+		x = 20; y = 20;
+		xi = 4; yi = 5;
+		bitmap = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_BITMAP1));
+		SetTimer(hDlg, 1, 30, nullptr);
+		break;
+
+	case WM_TIMER:
+		GetClientRect(hDlg, &rt);
+		if (x <= 0 || x >= rt.right - SIZE) { xi *= -1; }
+		if (y <= 0 || y >= rt.bottom - SIZE) { yi *= -1; }
+		x += xi;
+		y += yi;
+		InvalidateRect(hDlg, nullptr, true);
+		break;
+
+	case WM_PAINT:
+		hdc = BeginPaint(hDlg, &ps);
+		DrawBitmap(hdc, x, y, SIZE, SIZE, bitmap, 255, 255, 255);
+		EndPaint(hDlg, &ps);
+		break;
+
+	case WM_COMMAND:
+		switch (LOWORD(wParam)) {
+
+		case IDCANCEL:
+			KillTimer(hDlg, 1);
+			DeleteObject(bitmap);
+			EndDialog(hDlg, 0);
+			break;
+		}
+		break;
+	}
+	return 0;
+}

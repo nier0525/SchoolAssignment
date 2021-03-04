@@ -1,0 +1,174 @@
+#include <windows.h>
+#include <commctrl.h> 
+#include "resource.h"
+
+BOOL CALLBACK Dlg1(HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam);
+BOOL CALLBACK Dlg2(HWND hDlg2, UINT iMsg, WPARAM wParam, LPARAM lParam);
+
+HWND hDlgMain;
+HINSTANCE hInst;
+
+static char name[20] = { 0, };
+static char hobby[20] = { 0, };
+static char str[100][100] = { 0, };
+static int index = 0;
+
+static int x, y;
+
+int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance
+	, LPSTR lpszCmdParam, int nCmdShow)
+{
+	DialogBox(hInstance, MAKEINTRESOURCE(IDD_DIALOG1), 0, Dlg1);
+	return 0;
+}
+
+void MakeColumn(HWND hDlg)
+{
+	char *name[2] = { (char*)"이름", (char*)"전화번호" };
+	LVCOLUMN lvCol = { 0, };
+	HWND hList;
+	int i;
+	hList = GetDlgItem(hDlg, IDC_LIST1);
+	lvCol.mask = LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM;
+	lvCol.fmt = LVCFMT_LEFT;
+
+	for (i = 0; i < 2; i++)
+	{
+		lvCol.cx = 90;
+		lvCol.pszText = name[i];
+		lvCol.iSubItem = i;
+		SendMessage(hList, LVM_INSERTCOLUMN, (WPARAM)i, (LPARAM)&lvCol);
+	}
+}
+
+int SelItem(HWND hDlg, LPARAM lParam) {
+	LPNMLISTVIEW nlv;
+	HWND hList;
+	char name[20], phone[20];
+	hList = GetDlgItem(hDlg, IDC_LIST1);
+	nlv = (LPNMLISTVIEW)lParam;
+	ListView_GetItemText(hList, nlv->iItem, 0, name, 20);
+	SetDlgItemText(hDlg, IDC_EDIT1, name);
+	ListView_GetItemText(hList, nlv->iItem, 1, phone, 20);
+	SetDlgItemText(hDlg, IDC_EDIT2, phone);
+	return(nlv->iItem);
+}
+
+void InsertData(HWND hDlg, char *name, char *phone)
+{
+	LVITEM item;
+	HWND hList;
+	hList = GetDlgItem(hDlg, IDC_LIST1);
+
+	item.mask = LVIF_TEXT;
+	item.iItem = index;
+	item.iSubItem = 0;
+	item.pszText = name;
+	ListView_InsertItem(hList, &item);
+	ListView_SetItemText(hList, index, 1, phone);
+	index++;
+}
+
+void DeleteItem(HWND hDlg, int Sel) {
+	static HWND hList;
+	hList = GetDlgItem(hDlg, IDC_LIST1);
+	GetDlgItemText(hDlg, IDC_EDIT1, name, 20);
+	wsprintf(str[index++], "%s 가 탈퇴했습니다.", name);
+	ListView_DeleteItem(hList, Sel);
+	SetDlgItemText(hDlg, IDC_EDIT1, nullptr);
+	SetDlgItemText(hDlg, IDC_EDIT2, nullptr);
+	return;
+}
+
+BOOL CALLBACK Dlg1(HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam)
+{
+
+	LPNMHDR hdr;
+	HWND hList;
+	HWND hDlg2 = NULL;
+
+	static int sel;
+
+	switch (iMsg)
+	{
+	case WM_INITDIALOG:
+		MakeColumn(hDlg);
+		sel = -1;
+		break;
+
+	case WM_NOTIFY:
+		hdr = (LPNMHDR)lParam;
+		hList = GetDlgItem(hDlg, IDC_LIST1);
+		if (hdr->hwndFrom == hList && hdr->code == LVN_ITEMCHANGING) {
+			sel = SelItem(hDlg, lParam);
+		}
+		break;
+
+	case WM_COMMAND:
+		switch (LOWORD(wParam))
+		{
+		case IDOK:
+			GetDlgItemText(hDlg, IDC_EDIT1, name, 20);
+			GetDlgItemText(hDlg, IDC_EDIT2, hobby, 20);
+			if (!strcmp(name, "") || !strcmp(hobby,"")) { break; }
+			wsprintf(str[index], "%s 가 가입했습니다.", name);
+			InsertData(hDlg, name, hobby);
+			SetDlgItemText(hDlg, IDC_EDIT1, nullptr);
+			SetDlgItemText(hDlg, IDC_EDIT2, nullptr);
+			InvalidateRect(hDlgMain, nullptr, true);
+			break;
+
+		case IDOK2:
+			if (sel == -1) { break; }
+			DeleteItem(hDlg, sel);
+			sel = -1;
+			InvalidateRect(hDlgMain, nullptr, true);
+			break;
+
+		case IDOK3:
+			// hDlg2 = CreateDialog(hInst, MAKEINTRESOURCE(IDD_DIALOG2), hDlg, Dlg2);
+			DialogBox(hInst, MAKEINTRESOURCE(IDD_DIALOG2), hDlg, Dlg2);
+			ShowWindow(hDlg2, SW_SHOW);
+			break;
+
+		case IDCANCEL:
+			EndDialog(hDlg, 0);
+			return 0;
+		}
+		y = 0;
+		break;
+	}
+	return 0;
+}
+
+BOOL CALLBACK Dlg2(HWND hDlg2, UINT iMsg, WPARAM wParam, LPARAM lParam)
+{
+	HDC hdc;
+	PAINTSTRUCT ps;
+
+	switch (iMsg)
+	{
+	case WM_INITDIALOG:
+		hDlgMain = hDlg2;
+		break;
+
+	case WM_COMMAND:
+		switch (LOWORD(wParam))
+		{
+		case IDEXIT:
+			EndDialog(hDlg2, 0);
+			break;
+		}
+		break;
+
+	case WM_PAINT:
+		hdc = BeginPaint(hDlg2, &ps);
+		for (int i = 0; i < index; i++) {
+			TextOut(hdc, x, y, str[i], strlen(str[i]));
+			y += 20;
+		}
+		EndPaint(hDlg2, &ps);
+		break;
+	}
+	return 0;
+}

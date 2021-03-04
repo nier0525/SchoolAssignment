@@ -1,0 +1,50 @@
+#include "CircularQueue.h"
+
+void  CQ_CreateQueue(CircularQueue** Queue, int Capacity) //큐를 생성
+{
+	(*Queue) = (CircularQueue*)malloc(sizeof(CircularQueue));
+	(*Queue)->Nodes = (Node*)malloc(sizeof(Node)* (Capacity + 1));
+	(*Queue)->Capacity = Capacity;
+
+	(*Queue)->Front = 0;
+	(*Queue)->Rear = 0;
+}
+
+void CQ_DestroyQueue(CircularQueue* Queue) //큐를 파괴
+{
+	free(Queue->Nodes);
+	free(Queue);
+}
+
+void CQ_Enqueue(CircularQueue* Queue, ElementType Data) //큐에 데이터를 삽입
+{
+	if (CQ_IsFull(Queue)) {
+		printf("\nQueue is Full\n");
+		return;
+	}
+
+	Queue->Rear = (Queue->Rear + 1) % (Queue->Capacity + 1);
+	Queue->Nodes[Queue->Rear].Data = Data;
+}
+
+ElementType CQ_Dequeue(CircularQueue* Queue)
+{
+	if (CQ_IsEmpty(Queue)) {
+		printf("\nQueue is Empty\n");
+		return -1;
+	}
+
+	Queue->Front = (Queue->Front + 1) % (Queue->Capacity + 1);
+	return Queue->Nodes[Queue->Front].Data;
+}
+
+int CQ_IsEmpty(CircularQueue* Queue) //큐의 front와 rear가 같으면 비어있는 큐
+{
+	return (Queue->Front == Queue->Rear);
+}
+
+
+int CQ_IsFull(CircularQueue* Queue)
+{
+	return (Queue->Front == ((Queue->Rear + 1) % Queue->Capacity));
+}

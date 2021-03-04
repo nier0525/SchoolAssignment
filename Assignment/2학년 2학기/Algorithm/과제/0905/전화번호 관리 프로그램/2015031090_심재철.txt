@@ -1,0 +1,161 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <conio.h>
+
+#define ARRSIZE 10
+#define NODATA 0
+
+struct UserData {
+	char Name[50];
+	char Number[20];
+
+	UserData(const char* name, const char* num) {
+		strcpy(Name, name);
+		strcpy(Number, num);
+	}
+};
+
+void Add(UserData**, int*);
+void Del(UserData**, int*);
+void DisPlay(UserData*, int);
+
+int main() {
+	UserData* Arr[ARRSIZE];
+
+	int Count = NODATA;
+	int sel = NODATA;
+
+	memset(Arr, 0, sizeof(Arr));
+
+	while (1) {
+		printf("\t전화번호 관리\n\n");
+		printf("1. 보기	2. 입력	3. 삭제	4. 종료\n\n");
+		printf("\t메뉴 선택 : ");
+
+		scanf("%d", &sel);
+
+		printf("\n\n");
+
+		switch (sel) {
+		case 1:
+			DisPlay(*Arr, Count);
+			break;
+
+		case 2:
+			Add(Arr, &Count);
+			break;
+
+		case 3:
+			Del(Arr, &Count);
+			break;
+
+		case 4:
+			printf("아무키나 누르면 프로그램이 종료됩니다.");
+
+			if (getch()) {
+				exit(0);
+			}
+			break;
+		}
+		system("cls");
+	}
+
+	return 0;
+}
+
+void Add(UserData** Arr, int* Count) {
+	if (*Count == ARRSIZE) {
+		printf("더 이상 추가 할 수 없습니다.");
+		if (getch()) {
+			return;
+		}
+	}
+
+	char name[50];
+	char number[20];
+
+	printf("등록할 이름 : ");
+	scanf("%s", &name);
+
+	printf("\n전화번호 : ");
+	scanf("%s", &number);
+
+	for (int i = 0; i < *Count; i++) {
+		if (!strcmp(Arr[i]->Number,number)) {
+			printf("동일한 전화번호가 이미 있습니다.");
+			if (getch()) {
+				return;
+			}
+		}
+	}
+
+	Arr[*Count] = new UserData(name, number);
+
+	printf("\n%s 님의 전화번호가 정상적으로 등록되었습니다.", Arr[*Count]->Name);
+
+	if (getch()) {
+		*Count += 1;
+		return;
+	}
+}
+
+void Del(UserData** Arr, int* Count) {
+	if (*Count == NODATA) {
+		printf("현재 등록된 회원이 없습니다.");
+		if (getch()) {
+			return;
+		}
+	}
+
+	char number[20];
+	bool flug = false;
+
+	printf("전화번호 : ");
+	scanf("%s", &number);
+
+	for (int i = 0; i < *Count; i++) {
+		if (!strcmp(Arr[i]->Number, number)) {
+
+			printf("%s 님의 전화번호가 삭제되었습니다.", Arr[i]->Name);
+			delete Arr[i];
+
+			for (int j = i; j < *Count - 1; j++) {
+				Arr[j] = Arr[j + 1];
+			}
+			Arr[*Count - 1] = nullptr;
+			flug = true;
+		}
+	}
+
+	if (!flug) {
+		printf("없는 전화번호 입니다.");
+		if (getch()) {
+			return;
+		}
+	}
+
+	if (getch()) {
+		*Count -= 1;
+		return;
+	}
+}
+
+void DisPlay(UserData* Arr, int Count) {
+	if (Count == NODATA) {
+		printf("현재 등록된 회원이 없습니다.");
+	}
+
+	else {
+		printf("\t<< 전화번호 목록 >>\n\n");
+
+		for (int i = 0; i < Count; i++) {
+			printf("이름 : %s\t", Arr[i].Name);
+			printf("전화번호 : %s\n", Arr[i].Number);
+		}
+	}
+
+	if (getch()) {
+		return;
+	}
+}

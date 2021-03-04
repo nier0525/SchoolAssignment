@@ -1,0 +1,158 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
+
+#include <conio.h>
+
+#define MAX 30
+
+void GameFunc(char*, char*);
+
+int main() {
+		
+	char player1[30], player2[30];
+
+	printf("*** 주사위 영역 확보 게임 ***\n\n");
+	printf("두 사람이 서로 양끝에서 주사위 숫자만큼\n영역을 확보하는 게임입니다.\n");
+	printf("마지막 남은 영역을 확보하는 사람이 승리합니다.\n");
+	printf("아무키나 누르면 게임 참가자 이름을 입력하고 시작합니다.\n");
+
+	if (getch()) 
+	{
+		system("cls");
+	};
+
+	printf("\n1번 참가자의 이름을 입력하고 Enter 을 누르세요 : ");
+	scanf("%s", &player1);
+	printf("\n2번 참가자의 이름을 입력하고 Enter 을 누르세요 : ");
+	scanf("%s", &player2);
+	printf("\n\n아무키나 누르면 게임을 시작합니다.");
+
+	if (getch()) 
+	{
+		system("cls");
+	};
+
+	GameFunc(player1, player2);
+
+	return 0;
+}
+
+void GameFunc(char* player1, char* player2) {
+	int Arr[MAX];
+	int num = 0, stak1 = 0, stak2 = 0;
+	int count = MAX;
+	bool gameover = false;
+	bool turn = true;
+
+	printf("\n\n\n");
+	printf("\t\t\t남은 영역의 수 : %d 개\n", count);
+	printf("\t\t%s", player1);
+	printf("\t\t\t\t\t%s\n\n", player2);
+
+	printf("\t");
+	for (int i = 0; i < MAX; i++) {
+		Arr[i] = 0;
+		printf("□");
+	}
+	printf("\n");
+
+	printf("\t확보한 영역 수 : %d 개", stak1);
+	printf("\t\t\t확보한 영역 수 : %d 개\n\n", stak2);
+
+	printf("\t아무키나 누르면 게임이 진행됩니다.");
+	
+
+	while (!gameover)
+	{
+		srand(time(nullptr));
+		num = rand() % 6 + 1;
+
+		if (getch()) {
+			if (turn) {
+				stak1 += num;
+				count -= num;
+
+				for (int i = 0; i < stak1; i++) {
+					Arr[i] = 1;
+				}
+
+				turn = false;
+			}
+			else {
+				stak2 += num;
+				count -= num;
+
+				for (int i = (MAX - 1); i > (MAX - 1) - stak2; i--) {
+					Arr[i] = 1;
+				}
+
+				turn = true;
+			}
+			system("cls");
+		}
+	
+		printf("\n\n\n");
+		printf("\t\t\t남은 영역의 수 : %d 개\n", count);
+		printf("\t\t%s", player1);
+		printf("\t\t\t\t\t%s\n\n", player2);
+
+		printf("\t");
+		for (int i = 0; i < MAX; i++) {
+			if (Arr[i] == 1) {
+				printf("■");
+			}
+			else {
+				printf("□");
+			}
+		}
+		printf("\n");
+
+		printf("\t확보한 영역 수 : %d 개", stak1);
+		printf("\t\t\t확보한 영역 수 : %d 개\n\n", stak2);
+
+		if (!turn) {
+			printf("\t%s 님의 주사위 숫자는 %d 입니다.\n\n", player1, num);
+		}
+
+		else {
+			printf("\t%s 님의 주사위 숫자는 %d 입니다.\n\n", player2, num);
+		}
+
+		printf("\n\n\n\n\t아무키나 누르면 다음 순서를 진행됩니다.");
+
+		if (count <= 0) {
+			count = 0;
+			gameover = true;
+			system("cls");
+		}
+	}
+
+	if (gameover) {
+		printf("\n\n\n");
+		printf("\t\t\t남은 영역의 수 : %d 개\n", count);
+		printf("\t\t%s", player1);
+		printf("\t\t\t\t\t%s\n\n", player2);
+
+		printf("\t");
+		for (int i = 0; i < MAX; i++) {
+			printf("■");
+		}
+		printf("\n");
+
+		printf("\t확보한 영역 수 : %d 개", stak1);
+		printf("\t\t\t확보한 영역 수 : %d 개\n\n", stak2);
+
+		if (!turn) {
+			printf("\t%s 님의 주사위 숫자는 %d 입니다.\n\n", player1, num);
+			printf("\n\n\n\t%s 님이 승리했습니다.", player1);
+		}
+		else {
+			printf("\t%s 님의 주사위 숫자는 %d 입니다.\n\n", player2, num);
+			printf("\n\n\n\t%s 님이 승리했습니다.", player2);
+		}
+
+		printf("\n\n\n\n\t아무키나 누르면 게임이 종료됩니다.");
+	}
+}

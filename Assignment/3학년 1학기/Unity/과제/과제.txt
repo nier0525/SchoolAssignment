@@ -1,0 +1,23 @@
+
+3A 과제
+
+마인크래프트 무기만들기
+
+철, 도끼 만들기
+
+★ 낚싯대
+★ 당근낚싯대
+
+★ 나침반
+★ 빈지도
+
+UI 모양은 Free
+
+3A_과제_이름_2020_1학기.zip
+2020/06/28일 24시까지
+
+소스 프로젝트 (Asset, ProjectSettings), 실행 파일, 실행 이미지 파일 2장
+
+magotoolivesource@gmail.com
+
+참고 사이트 : https://namu.wiki/w/%EB%A7%88%EC%9D%B8%ED%81%AC%EB%9E%98%ED%94%84%ED%8A%B8/%EC%95%84%EC%9D%B4%ED%85%9C/%EB%8F%84%EA%B5%AC

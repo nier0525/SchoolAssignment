@@ -1,0 +1,184 @@
+#include <windows.h> // 윈도우 헤더파일
+
+LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM); // CALLBACK 매크로
+HINSTANCE g_hInst;   // 인스턴스 핸들
+LPCTSTR lpszClass = TEXT("심재철_2015031090"); // 제목 표시물에 표시되는 내용
+
+
+int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance
+	, LPSTR lpszCmdParam, int nCmdShow)
+{
+	HWND hWnd;
+	MSG Message;
+	WNDCLASS WndClass;
+	g_hInst = hInstance;
+
+	WndClass.cbClsExtra = 0;
+	WndClass.cbWndExtra = 0;
+	WndClass.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
+	WndClass.hCursor = LoadCursor(NULL, IDC_ARROW);
+	WndClass.hIcon = LoadIcon(NULL, IDI_APPLICATION);
+	WndClass.hInstance = hInstance;
+	WndClass.lpfnWndProc = WndProc;
+	WndClass.lpszClassName = lpszClass;
+	WndClass.lpszMenuName = NULL;
+	WndClass.style = CS_HREDRAW | CS_VREDRAW;
+	RegisterClass(&WndClass);
+
+	hWnd = CreateWindow(lpszClass, lpszClass, WS_OVERLAPPEDWINDOW,
+		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
+		NULL, (HMENU)NULL, hInstance, NULL);
+	ShowWindow(hWnd, nCmdShow);
+
+	while (GetMessage(&Message, NULL, 0, 0)) {  // Queue 에 있는 메시지를
+
+		if ((Message.message == WM_KEYDOWN || Message.message == WM_KEYUP) && Message.hwnd != hWnd) {
+			PostMessage(hWnd, Message.message, Message.wParam, Message.lParam);
+		}
+		TranslateMessage(&Message); // 키보드를 입력 메시지를 가공하여 프로그램을
+									// 사용할 수 있도록
+		DispatchMessage(&Message);  // 메세지를 윈도우의 메세지 처리 함수
+
+	}
+
+	return (int)Message.wParam; // 탈출 코드. 프로그램 종료}
+}
+
+#include <math.h>
+#define BSIZE 10
+
+double Lengthpts(int x1, int y1, int x2, int y2) {
+	return (sqrt((float)((x2 - x1)*(x2 - x1) + (y2 - y1)*(y2 - y1)))); // 두 좌표간의 거리 계산
+}
+BOOL InCircle(int x, int y, int mx, int my) {
+	if (Lengthpts(x, y, mx, my) < BSIZE) return TRUE;
+	else return FALSE;
+}
+
+LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
+{
+
+	struct One {
+		BOOL on;
+		int x, y, r, g, b;
+	};
+
+	HDC hdc;
+	PAINTSTRUCT ps;
+	RECT rt;
+	HBRUSH hBrush, oldBrush;
+
+	static One one[100];
+
+	BOOL flug = FALSE;
+	static int rx, ry;
+
+	static int count = 0;
+
+	switch (iMessage) {
+
+	case WM_CREATE:
+		GetClientRect(hWnd, &rt);
+
+		rx = rt.right / 2; // 좌우 중간
+		ry = rt.bottom - 100; // 상하 중간
+
+		one[count].x = rx;
+		one[count].y = ry;
+
+		CreateWindow(TEXT("button"), TEXT("RedOne"), WS_CHILD | WS_VISIBLE | // 1 버튼
+			BS_PUSHBUTTON, 20, 20, 100, 25, hWnd, (HMENU)0, g_hInst, NULL);
+		CreateWindow(TEXT("button"), TEXT("BlueOne"), WS_CHILD | WS_VISIBLE | // 2 버튼
+			BS_PUSHBUTTON, 20, 50, 100, 25, hWnd, (HMENU)1, g_hInst, NULL);
+		CreateWindow(TEXT("button"), TEXT("Exit"), WS_CHILD | WS_VISIBLE | // 3 버튼
+			BS_PUSHBUTTON, 20, 80, 100, 25, hWnd, (HMENU)2, g_hInst, NULL);
+
+		SetTimer(hWnd, 1, 50, NULL);
+		return 0;
+
+	case WM_COMMAND:
+		switch (LOWORD(wParam)) {
+		case 0:
+			one[count].r = 255;
+			one[count].g = 0;
+			one[count].b = 0;
+			break;
+		case 1:
+			one[count].r = 0;
+			one[count].g = 0;
+			one[count].b = 255;
+			break;
+		case 2:
+			DestroyWindow(hWnd); // 종료
+			break;
+		}
+		InvalidateRect(hWnd, NULL, TRUE); // 화면 초기화
+		return 0;
+
+	case WM_KEYDOWN:
+		switch (wParam) {
+		case VK_SPACE:
+			if (!one[count].on) {
+				one[count].on = TRUE;
+				one[count].x = rx;
+				one[count].y = ry;
+
+				count++;
+			}
+			break;
+		}
+		break;
+
+	case WM_TIMER:
+		switch (wParam) {
+		case 1:
+			if (GetAsyncKeyState(VK_LEFT) & 0x8000) {
+				rx -= 10;
+			}
+			if (GetAsyncKeyState(VK_RIGHT) & 0x8000) {
+				rx += 10;
+			}
+			if (GetAsyncKeyState(VK_UP) & 0x8000) {
+				ry -= 10;
+			}
+			if (GetAsyncKeyState(VK_DOWN) & 0x8000) {
+				ry += 10;
+			}			
+			break;
+		}
+		InvalidateRect(hWnd, NULL, TRUE);
+		break;
+
+	case WM_PAINT:
+		hdc = BeginPaint(hWnd, &ps);
+		GetClientRect(hWnd, &rt);
+
+		for (int i = 0; i < count; i++) {
+			if (one[i].on) {
+				one[i].y -= 10;
+
+				if (one[i].y < rt.top + BSIZE) {
+					one[i].on = FALSE;
+				}
+
+				hBrush = CreateSolidBrush(RGB(one[i].r, one[i].g, one[i].b)); // 빨간색
+				oldBrush = (HBRUSH)SelectObject(hdc, hBrush);
+
+				Ellipse(hdc, one[i].x + BSIZE, one[i].y + BSIZE, one[i].x - BSIZE, one[i].y - BSIZE);
+
+				SelectObject(hdc, oldBrush);
+				DeleteObject(hBrush);
+			}
+		}
+		Rectangle(hdc, rx + 60, ry + 10, rx - 60, ry - 10);
+
+		EndPaint(hWnd, &ps);
+		break;
+
+		///////////////////////////////////////////
+	case WM_DESTROY:
+		PostQuitMessage(0);
+		return 0;
+	}
+	return(DefWindowProc(hWnd, iMessage, wParam, lParam));
+}

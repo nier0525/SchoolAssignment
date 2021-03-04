@@ -1,0 +1,152 @@
+#include <windows.h> // 윈도우 헤더파일
+
+LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM); // CALLBACK 매크로
+HINSTANCE g_hinst;   // 인스턴스 핸들
+LPCTSTR lpszClass = TEXT("심재철_2015031090"); // 제목 표시물에 표시되는 내용
+
+
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdParam, int nCmdShow) // main 함수
+{
+	HWND hWnd; // 윈도우 핸들 선언
+	MSG Message; // 메세지 구조체 변수 선언
+	WNDCLASS WndClass; // Windows Class 구조체 변수 선언
+
+	g_hinst = hInstance;
+	// hInstance 값을 외부에서도 사용할 수 있도록 전역변수에 값을 저장
+
+	WndClass.cbClsExtra = 0; // 예약 영역. 지금은 사용 X
+	WndClass.cbWndExtra = 0; // 예약 영역
+	WndClass.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH); // 윈도우의 배경 색상을 지정
+	WndClass.hCursor = LoadCursor(NULL, IDC_ARROW); // 윈도우의 마우스 포인터 모양을 지정
+	WndClass.hIcon = LoadIcon(NULL, IDI_HAND); // 윈도우의 커서 모양 지정
+	WndClass.hInstance = hInstance; // 윈도우 클래스를 등록하는 프로그램
+	WndClass.lpfnWndProc = WndProc; // 윈도우 메세지 처리 함수 지정
+	WndClass.lpszClassName = lpszClass; // 윈도우 클래스의 이름 지정
+	WndClass.lpszMenuName = NULL; // 이 프로그램의 메뉴 지정
+	WndClass.style = CS_HREDRAW | CS_DBLCLKS | CS_VREDRAW; // 윈도우의 스타일을 정의
+
+	RegisterClass(&WndClass); // WNDCLASS 구조체의 번지를 전달
+
+	// 윈도우를 생성하고 창에 표시하는 기능을 수행
+	hWnd = CreateWindow(lpszClass, lpszClass, WS_OVERLAPPEDWINDOW, /*CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT*/
+		300, 100, 800, 600, NULL, (HMENU)NULL, hInstance, NULL);
+
+	ShowWindow(hWnd, nCmdShow);
+
+	// 메세지 루프를 실행
+	while (GetMessage(&Message, NULL, 0, 0)) {  // Queue 에 있는 메시지를
+		TranslateMessage(&Message); // 키보드를 입력 메시지를 가공하여 프로그램을
+									// 사용할 수 있도록
+		DispatchMessage(&Message);  // 메세지를 윈도우의 메세지 처리 함수
+
+	}
+
+	return (int)Message.wParam; // 탈출 코드. 프로그램 종료
+}
+#include <math.h>
+#define BSIZE 20
+
+double Lengthpts(int x1, int y1, int x2, int y2) {
+	return (sqrt((float)((x2 - x1)*(x2 - x1) + (y2 - y1)*(y2 - y1)))); // 두 좌표간의 거리 계산
+}
+BOOL InCircle(int x, int y, int mx, int my) {
+	if (Lengthpts(x, y, mx, my) < BSIZE) return TRUE;
+	else return FALSE;
+}
+LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
+{
+
+	HDC hdc;
+	PAINTSTRUCT ps;
+	static RECT rt;
+	static BOOL s = FALSE;
+	static int x, y, y1, y2, y3, y4;
+	static int a = 1, count = 0;
+	static TCHAR st[128];
+	static TCHAR str[128];
+	static TCHAR str1[128];
+	static TCHAR str2[128];
+	static TCHAR str3[128];
+	static TCHAR str4[128];
+
+
+
+	switch (iMessage) {
+
+	case WM_SIZE:
+		GetClientRect(hWnd, &rt);
+
+	case WM_CREATE:
+		wsprintf(st, "s키를 누르면 게임이 시작됩니다");
+
+	case WM_CHAR:
+		switch (wParam)
+		{
+		case 's'			MessageBox(hWnd, "곧 게임이 시작됩니다", "start", MB_OK);
+			lstrcpy(str, "pen");
+			SetTimer(hWnd, 1, 100, NULL);
+			InvalidateRect(hWnd, NULL, TRUE);
+			a++;
+			if (a = 1) {
+				lstrcpy(str1, "brush");
+				SetTimer(hWnd, 1, 100, NULL);
+				InvalidateRect(hWnd, NULL, TRUE);
+			}
+			if (a = 1) {
+				lstrcpy(str2, "head");
+				SetTimer(hWnd, 1, 100, NULL);
+				InvalidateRect(hWnd, NULL, TRUE);
+			}			if (a = 1) {
+				lstrcpy(str3, "bend");
+				SetTimer(hWnd, 1, 100, NULL);
+				InvalidateRect(hWnd, NULL, TRUE);
+			}
+			if (a = 1) {
+				lstrcpy(str4, "hold");
+				SetTimer(hWnd, 1, 100, NULL);
+				InvalidateRect(hWnd, NULL, TRUE);
+			}
+		
+
+		}
+
+
+	case WM_TIMER:
+		switch (wParam)
+		{
+		case 1:
+			if (y > rt.bottom) {
+				KillTimer(hWnd, 1);
+				MessageBox(hWnd, "게임 종료", "패배", MB_OK);
+				ExitProcess(0);
+			}
+			else y += 10;
+			InvalidateRect(hWnd, NULL, TRUE);
+			return 0;
+
+		}
+
+	case WM_PAINT:
+		hdc = BeginPaint(hWnd, &ps);
+		TextOut(hdc, 0, 0, st, lstrlen(st));
+
+		TextOut(hdc, x, y, str, strlen(str));
+		TextOut(hdc, x + 100, y-50, str1, strlen(str1));
+		TextOut(hdc, x + 200, y-100, str2, strlen(str2));
+		TextOut(hdc, x + 300, y-200, str3, strlen(str3));
+		TextOut(hdc, x + 400, y-300, str4, strlen(str4));
+
+
+		EndPaint(hWnd, &ps);
+		return 0;
+
+	case WM_DESTROY:
+		PostQuitMessage(0);
+		return 0;
+
+
+
+
+	}
+	return (DefWindowProc(hWnd, iMessage, wParam, lParam));
+}

@@ -1,0 +1,92 @@
+#include "Stack.h"
+#include <string.h>
+
+#define ERROR -1
+
+int WordRef(int data) {
+	switch (data) {
+	case '(':
+	case ')':
+		return 0;
+
+	case '*':
+	case '/':
+		return 1;
+
+	case '+':
+	case '-':
+		return 2;
+	}
+
+	return ERROR;
+}
+
+int Oper(int a, int b, int data) {
+	if (a < ERROR || b < ERROR) {
+		return ERROR;
+	}
+
+	switch (data) {
+	case '*':
+		return a * b;
+
+	case '/':
+		return a / b;
+
+	case '+':
+		return a + b;
+
+	case '-':
+		return a - b;
+	}
+
+	return ERROR;
+}
+
+int main(void)
+{
+	ArrayStack* Stack = NULL;
+	ArrayStack* NumStack = NULL;
+
+	char index[128] = {};
+	int strsize = 0;
+
+	printf("연산 입력 : ");
+	scanf("%s", index);
+	strsize = strlen(index);
+	
+	printf("\n\n");
+
+	AS_CreateStack(&Stack, 20);
+	AS_CreateStack(&NumStack, 20);
+
+	for (int i = 0; i < strsize; i++) {
+		if ((int)index[i] - 48 >= 0 && (int)index[i] - 48 < 9) {
+			printf("%d", (int)index[i] - 48);
+			AS_Push(NumStack, (int)index[i] - 48);
+		}
+
+		else if (WordRef((int)index[i]) != ERROR) {
+			while (!AS_IsEmpty(Stack)) {
+				if (WordRef((int)AS_Top(Stack)) <= WordRef((int)index[i])) {
+					AS_Push(NumStack, Oper(AS_Pop(NumStack), AS_Pop(NumStack), AS_Top(Stack)));
+					printf("%c", AS_Pop(Stack));
+				}
+				else {
+					break;
+				}
+			}
+			AS_Push(Stack, index[i]);
+		}
+	}
+
+	AS_Push(NumStack, Oper(AS_Pop(NumStack), AS_Pop(NumStack), AS_Top(Stack)));
+	printf("%c", AS_Pop(Stack));
+	printf("\n\nSum : %d\n\n", AS_Pop(NumStack));
+
+	AS_DestroyStack(Stack);
+	AS_DestroyStack(NumStack);
+
+	system("pause");
+	return 0;
+}

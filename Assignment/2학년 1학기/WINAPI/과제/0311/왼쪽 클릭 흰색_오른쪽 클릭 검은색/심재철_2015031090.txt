@@ -1,0 +1,102 @@
+#include <windows.h>
+
+LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
+HINSTANCE g_hInst;
+HWND hWndMain;
+LPCTSTR lpszClass = TEXT("심재철_2015031090");
+
+int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance
+	, LPSTR lpszCmdParam, int nCmdShow)
+{
+	HWND hWnd;
+	MSG Message;
+	WNDCLASS WndClass;
+	g_hInst = hInstance;
+
+	WndClass.cbClsExtra = 0;
+	WndClass.cbWndExtra = 0;
+	WndClass.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
+	WndClass.hCursor = LoadCursor(NULL, IDC_ARROW);
+	WndClass.hIcon = LoadIcon(NULL, IDI_APPLICATION);
+	WndClass.hInstance = hInstance;
+	WndClass.lpfnWndProc = WndProc;
+	WndClass.lpszClassName = lpszClass;
+	WndClass.lpszMenuName = NULL;
+	WndClass.style = CS_HREDRAW | CS_VREDRAW;
+	RegisterClass(&WndClass);
+	hWnd = CreateWindow(lpszClass, lpszClass, WS_OVERLAPPEDWINDOW,
+		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
+		NULL, (HMENU)NULL, hInstance, NULL);
+	ShowWindow(hWnd, nCmdShow);
+
+	while (GetMessage(&Message, NULL, 0, 0)) {
+		TranslateMessage(&Message);
+		DispatchMessage(&Message);
+	}
+	return (int)Message.wParam;
+}
+
+#define BSIZE2 80
+
+LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
+{
+	HDC hdc;
+	PAINTSTRUCT ps;
+	int i, j;
+	static int rect[8][4];
+	static int x, y;
+
+	HBRUSH hBrush, oldBrush;
+
+	switch (iMsg) {
+
+	case WM_CREATE:
+		x = -50;  y = -50;
+		return 0;
+
+	case WM_PAINT:
+		hdc = BeginPaint(hwnd, &ps);
+		for (i = 0; i < 8; i++) {	// 가로 8칸
+			for (j = 0; j < 4; j++)	// 세로 4칸
+			{
+				Rectangle(hdc, i*BSIZE2, j*BSIZE2, (i + 1)*BSIZE2, (j + 1)*BSIZE2);	// 8x4 네모
+				if (rect[i][j]) { // 왼쪽 클릭 정수 값
+					Ellipse(hdc, i*BSIZE2, j*BSIZE2, (i + 1)*BSIZE2, (j + 1)*BSIZE2); // 포인트 좌표에 원 출력 (흰색)
+				}
+				if (rect[i][j] == 2) { // 오른쪽 클릭 정수 값
+					hBrush = CreateSolidBrush(RGB(0, 0, 0)); // 검은색 값
+					oldBrush = (HBRUSH)SelectObject(hdc, hBrush); // 기존색 저장
+					Ellipse(hdc, i*BSIZE2, j*BSIZE2, (i + 1)*BSIZE2, (j + 1)*BSIZE2);// 포인트 좌표에 원 출력 (검은색)
+					SelectObject(hdc, oldBrush); // 색 저장
+					DeleteObject(hBrush); // 기존색 삭제
+				}
+			}
+		}
+
+		EndPaint(hwnd, &ps);
+		break;
+
+	case WM_LBUTTONDOWN:
+		x = LOWORD(lParam) / BSIZE2;
+		y = HIWORD(lParam) / BSIZE2; // 포인트 좌표 지정
+		if (x < 8 && y < 4) {
+			rect[x][y] = 1; // 정수 값 지정
+		}
+		InvalidateRect(hwnd, NULL, TRUE); // 화면 초기화
+		break;
+
+	case WM_RBUTTONDOWN:
+		x = LOWORD(lParam) / BSIZE2;
+		y = HIWORD(lParam) / BSIZE2; // 포인트 좌표 지정
+		if (x < 8 && y < 4) {
+			rect[x][y] = 2; // 정수 값 지정
+		}
+		InvalidateRect(hwnd, NULL, TRUE); // 화면 초기화
+		break;
+
+	case WM_DESTROY:
+		PostQuitMessage(0);
+		return 0;
+	}
+	return(DefWindowProc(hwnd, iMsg, wParam, lParam));
+}

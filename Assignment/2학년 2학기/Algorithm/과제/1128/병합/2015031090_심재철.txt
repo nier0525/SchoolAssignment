@@ -1,0 +1,85 @@
+#include <stdio.h>
+#include <Windows.h>
+#include <time.h>
+
+#define SIZE 100
+#define MIN(a,b) ((a < b) ? a : b)
+#define SWAP(x, y, temp) ((temp) = (x), (x) = (y), (y) = (temp));
+
+void BubbleSort(int*, int);
+
+int main() {
+	int Arr_A[SIZE];
+	int Arr_B[SIZE];
+
+	int Arr_C[SIZE * 2] = { 0, };
+
+	int a, b, c;
+
+	srand(time(nullptr));
+
+	printf("배열 내에 정수는 난수가 삽입됩니다.\n");
+
+	printf("배열 A 의 크기를 입력하세요 >> ");
+	scanf("%d", &a);
+
+	printf("배열 A : ");
+	for (int i = 0; i < a; i++) {
+		Arr_A[i] = rand() % SIZE;
+		printf("%d ", Arr_A[i]);
+	}
+
+	printf("\n\n배열 B 의 크기를 입력하세요 >> ");
+	scanf("%d", &b);
+
+	printf("배열 B : ");
+	for (int i = 0; i < b; i++) {
+		Arr_B[i] = rand() % SIZE;
+		printf("%d ", Arr_B[i]);
+	}
+	printf("\n");
+
+	BubbleSort(Arr_A, a);
+	BubbleSort(Arr_B, b);
+
+	int p1, p2, p3;
+	p1 = p2 = p3 = 0;
+
+	while (p1 < a && p2 < b) {
+		if (Arr_A[p1] < Arr_B[p2]) {
+			Arr_C[p3++] = Arr_A[p1++];
+		}
+		else {
+			Arr_C[p3++] = Arr_B[p2++];
+		}
+	}
+
+	while (p1 < a || p2 < b) {
+		if (p1 < a) {
+			Arr_C[p3++] = Arr_A[p1++];
+		}
+		else if (p2 < b) {
+			Arr_C[p3++] = Arr_B[p2++];
+		}
+	}
+
+	printf("\n배열 C의 크기는 %d 입니다.", p3);
+	printf("\n배열 C : ");
+	for (int i = 0; i < p3; i++) {
+		printf("%d ", Arr_C[i]);
+	}
+	printf("\n");
+
+	return 0;
+}
+
+void BubbleSort(int* Arr, int index) {
+	for (int i = 0; i < index; i++) {
+		for (int j = i; j < index; j++) {
+			if (Arr[i] >= Arr[j]) {
+				int temp;
+				SWAP(Arr[i], Arr[j], temp);
+			}
+		}
+	}
+}

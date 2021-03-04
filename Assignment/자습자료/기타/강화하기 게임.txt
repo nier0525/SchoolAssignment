@@ -1,0 +1,2262 @@
+#include <Windows.h>
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+
+#include <conio.h>
+
+#define UP 72
+#define DOWN 80
+#define LEFT 75
+#define RIGHT 77
+#define ENTER 13
+
+enum INTROMENU { NEW, LOGIN , EXIT };
+enum MAINMENU { UPGRADE, GAMBLE, STORE, DEL , RETURN_INTRO };
+
+struct Wenpon {
+	char name[30];
+	int upgrade;
+
+	double ablilty;
+	double money;
+
+	Wenpon() {
+		ZeroMemory(&name, sizeof(name));
+		upgrade = 0;
+		ablilty = 0;
+		money = 0;
+	}
+};
+
+struct Normal {
+	char name[30];
+	int upgrade;
+
+	double ablilty;
+	double money;
+};
+
+struct Rare {
+	char name[30];
+	int upgrade;
+
+	double ablilty;
+	double money;
+};
+
+struct Epic {
+	char name[30];
+	int upgrade;
+
+	double ablilty;
+	double money;
+};
+
+struct User {
+	char id[20];
+	char pw[20];
+
+	double money;
+
+	Wenpon user_wenpon[20];
+	int count;
+
+	User() {
+		ZeroMemory(&id, sizeof(id));
+		ZeroMemory(&pw, sizeof(pw));
+
+		money = 130000;
+
+		for (int i = 0; i < 20; i++) {
+			ZeroMemory(&user_wenpon, sizeof(Wenpon));
+		}
+		count = 0;
+	}
+};
+
+void MainMenu(User*, int*);
+void LoginMenu(User*, User, int*);
+void UpgradeMenu(User*, User, int*);
+void Store(User*, User, int*);
+void Gamble(User*, User, int*);
+
+Normal normal[17];
+Rare rare[16];
+Epic epic[15];
+
+int main() {
+	int count = 0;
+
+	User userlist[20];
+	for (int i = 0; i < 20; i++) {
+		ZeroMemory(&userlist[i], sizeof(User));
+	}
+
+	strcpy(normal[0].name, "Normal");
+	normal[0].upgrade = 0;
+	normal[0].ablilty = 100;
+	normal[0].money = 1000;
+
+	strcpy(rare[0].name, "Rare");
+	rare[0].upgrade = 0;
+	rare[0].ablilty = 250;
+	rare[0].money = 2500;
+
+	strcpy(epic[0].name, "Epic");
+	epic[0].upgrade = 0;
+	epic[0].ablilty = 500;
+	epic[0].money = 5000;
+
+	double ablity = 100;
+	double money = 1000;
+
+	for (int i = 1; i < 17; i++) {
+		ablity += ablity * 0.5;
+		money += money * 0.5;
+
+		strcpy(normal[i].name, "Normal");
+		normal[i].upgrade = i;
+		normal[i].ablilty = ablity;
+		normal[i].money = money;
+	}
+
+	ablity = 250;
+	money = 2500;
+
+	for (int i = 1; i < 16; i++) {
+		ablity += ablity * 0.5;
+		money += money * 0.5;
+
+		strcpy(rare[i].name, "Rare");
+		rare[i].upgrade = i;
+		rare[i].ablilty = ablity;
+		rare[i].money = money;
+	}
+
+	ablity = 1000;
+	money = 10000;
+
+	for (int i = 1; i < 15; i++) {
+		ablity += ablity * 0.5;
+		money += money * 0.5;
+
+		strcpy(epic[i].name, "Epic");
+		epic[i].upgrade = i;
+		epic[i].ablilty = ablity;
+		epic[i].money = money;
+	}
+
+	srand(time(nullptr));
+
+	MainMenu(userlist, &count);
+
+	printf("\n\n프로그램을 종료합니다 . . . ");
+	return 0;
+}
+
+void MainMenu(User* userlist, int* count) {
+	int key = 0;
+	int num = 0;
+
+	User NowUser;
+	//ZeroMemory(&NowUser, sizeof(User));
+
+	system("cls");
+
+	printf("\n[ 강화 시뮬레이터 게임 ]\n\n▶ 회원가입\n   로그인\n   종료\n\n ");
+
+	while (1) {
+
+		key = getch();
+		if (key == 224) {
+			key = getch();
+		
+			switch (key) {
+			case UP:
+				if (num > NEW) {
+					num--;
+				}
+				break;
+
+			case DOWN:
+				if (num < EXIT) {
+					num++;
+				}
+				break;
+			}
+		}
+		else {
+			if (key == ENTER) {
+				switch (num) {
+				case NEW:
+				case LOGIN:
+					printf("\n\nID 와 PW 를 입력하세요.\n\n");
+					printf("ID : ");
+					scanf("%s", NowUser.id);
+					printf("PW : ");
+					scanf("%s", NowUser.pw);
+					break;
+
+				case EXIT:
+					return;
+				}
+
+				bool flug = false;
+
+				switch (num) {
+				case NEW:
+					for (int i = 0; i < *count; i++) {
+						if (!strcmp(userlist[i].id, NowUser.id)) {
+							printf("\n\n중복된 ID 가 있습니다.\n");
+							flug = true;
+							break;
+						}
+					}
+
+					if (!flug) {
+						userlist[*count] = NowUser;
+						*count += 1;
+
+						printf("\n\n%s 님이 회원가입 되었습니다.\n", NowUser.id);
+					}
+
+					if (getch()) {
+						break;;
+					}
+
+				case LOGIN:
+					for (int i = 0; i < *count; i++) {
+						if (!strcmp(userlist[i].id, NowUser.id)) {
+							flug = true;
+							if (!strcmp(userlist[i].pw, NowUser.pw)) {
+								printf("\n\n정상적으로 로그인 했습니다.\n");
+								if (getch()) {
+									LoginMenu(userlist, NowUser, count);
+									break;
+								}
+							}
+							else {
+								printf("\n\nPW 가 틀렸습니다.\n");
+								if (getch()) {
+									break;
+								}
+							}
+						}
+					}
+
+					if (!flug) {
+						printf("\n\n없는 ID 입니다.\n");
+						if (getch()) {
+						}
+					}
+					break;
+				}
+			}
+		}
+
+		system("cls");
+
+		switch (num) {
+		case NEW:
+			printf("\n[ 강화 시뮬레이터 게임 ]\n\n▶ 회원가입\n   로그인\n   종료\n\n ");
+			break;
+
+		case LOGIN:
+			printf("\n[ 강화 시뮬레이터 게임 ]\n\n   회원가입\n▶ 로그인\n   종료\n\n ");
+			break;
+			
+		case EXIT:
+			printf("\n[ 강화 시뮬레이터 게임 ]\n\n   회원가입\n   로그인\n▶ 종료\n\n ");
+			break;
+		}
+	}
+}
+
+void LoginMenu(User* userlist, User Nowuser, int* count) {
+	system("cls");
+
+	MAINMENU sel = UPGRADE;
+
+	int key = 0;
+	int num = 0;
+
+	printf("\n[ 메뉴 ]\n\n▶ 강화하기\n   도박하기\n   상점이용\n   회원탈퇴\n   로그아옷\n\n");
+	printf("\n무기를 강화합니다. 아름다운 폭죽놀이를 기원합니다ㅎㅎ");
+
+	while (1) {
+		key = getch();
+		if (key == 224) {
+			key = getch();
+
+			switch (key) {
+			case UP:
+				if (num > UPGRADE) {
+					num--;
+				}
+				break;
+
+			case DOWN:
+				if (num < RETURN_INTRO) {
+					num++;
+				}
+				break;
+			}
+		}
+		else {
+			if (key == ENTER) {
+				switch (sel) {
+				case UPGRADE:
+					system("cls");
+					UpgradeMenu(userlist, Nowuser, count);
+					break;
+
+				case GAMBLE:
+					system("cls");
+					Gamble(userlist, Nowuser, count);
+					break;
+
+				case STORE:
+					system("cls");
+					Store(userlist, Nowuser, count);
+					break;
+
+				case DEL:
+					for (int i = 0; i < *count; i++) {
+						if (!strcmp(userlist[i].id, Nowuser.id) && !strcmp(userlist[i].pw, Nowuser.pw)) {
+							printf("\n\n%s 계정이 정상적으로 탈퇴되었습니다.\n", Nowuser.id);
+							for (int j = i; j < *count - 1; j++) {
+								userlist[j] = userlist[j + 1];
+							}
+							ZeroMemory(&userlist[*count - 1], sizeof(User));
+							*count -= 1;
+
+							if (getch()) {
+								break;
+							}
+						}
+					}
+					return;
+
+				case RETURN_INTRO:
+					return;
+				}
+			}
+		}
+
+		system("cls");
+		sel = (MAINMENU)num;
+
+		switch (sel) {
+		case UPGRADE:
+			printf("\n[ 메뉴 ]\n\n▶ 강화하기\n   도박하기\n   상점이용\n   회원탈퇴\n   로그아옷\n\n");
+			printf("\n무기를 강화합니다. 아름다운 폭죽놀이를 기원합니다ㅎㅎ\n");
+			break;
+
+		case GAMBLE:
+			printf("\n[ 메뉴 ]\n\n   강화하기\n▶ 도박하기\n   상점이용\n   회원탈퇴\n   로그아옷\n\n");
+			printf("\n도박을 진행합니다. 과한 욕심이 부른 참사는 타인에겐 웃음을 줍니다ㅎㅎ\n");
+			break;
+
+		case STORE:
+			printf("\n[ 메뉴 ]\n\n   강화하기\n   도박하기\n▶ 상점이용\n   회원탈퇴\n   로그아옷\n\n");
+			printf("\n상점을 이용합니다. 음머어어어어어~\n");
+			break;
+
+		case DEL:
+			printf("\n[ 메뉴 ]\n\n   강화하기\n   도박하기\n   상점이용\n▶ 회원탈퇴\n   로그아옷\n\n");
+			printf("\n회원탈퇴를 합니다. 다음 생에 다시 만나요~\n");
+			break;
+
+		case RETURN_INTRO:
+			printf("\n[ 메뉴 ]\n\n   강화하기\n   도박하기\n   상점이용\n   회원탈퇴\n▶ 로그아옷\n\n");
+			printf("\n로그아웃 합니다. 짜이찌엔\n");
+			break;
+		}
+	}
+}
+
+void UpgradeMenu(User* userlist, User nowuser, int* count) {
+	int now = 0;
+
+	int key = 0;
+	int se_key = 0;
+
+	int sel = 0;
+	int num = 0;
+
+	printf("\n[ 메뉴 ]\n\n▶ 강화 무기 선택\n   강화 설명\n   돌아가기\n\n");
+
+	for (int i = 0; i < *count; i++) {
+		if (!strcmp(userlist[i].id, nowuser.id) && !strcmp(userlist[i].pw, nowuser.pw)) {
+			printf("현재 잔액 : %.0lf\n\n", userlist[i].money);
+			now = i;
+			break;
+		}
+	}
+
+	while (1) {
+		key = getch();
+		if (key == 224) {
+			key = getch();
+
+			switch (key) {
+			case UP:
+				if (sel > 0) {
+					sel--;
+				}
+				break;
+
+			case DOWN:
+				if (sel < 2) {
+					sel++;
+				}
+				break;
+			}
+		}
+		else {
+			if (key == ENTER) {
+				switch (sel) {
+				case 0:
+					int up_per;
+					bool flug;
+
+					if (userlist[now].count <= 0) {
+						printf("가지고 있는 무기가 없습니다 . . .");
+						getch();
+					}
+
+					else {
+						system("cls");
+
+						printf("\n[ 강화 ]\n*강화할 무기를 선택해주세요.\n\n");
+
+						for (int i = 0; i < userlist[now].count; i++) {
+							if (i == num) {
+								printf("▶  %s / %d / %.0lf / %.0lf\n", userlist[now].user_wenpon[i].name, userlist[now].user_wenpon[i].upgrade, userlist[now].user_wenpon[i].ablilty, userlist[now].user_wenpon[i].money);
+							}
+							else {
+								printf("    %s / %d / %.0lf / %.0lf\n", userlist[now].user_wenpon[i].name, userlist[now].user_wenpon[i].upgrade, userlist[now].user_wenpon[i].ablilty, userlist[now].user_wenpon[i].money);
+							}
+						}
+						printf("\n    돌아가기\n\n");
+
+						while (1) {
+							se_key = getch();
+							if (se_key == 224) {
+								se_key = getch();
+
+								switch (se_key) {
+								case UP:
+									if (num > 0) {
+										num--;
+									}
+									break;
+
+								case DOWN:
+									if (num < userlist[now].count) {
+										num++;
+									}
+									break;
+								}
+							}
+							else {
+								if (se_key == ENTER) {
+
+									if (num == userlist[now].count) {
+										break;
+									}
+
+									else {
+
+										printf("\n\n%d %s 무기를 정말 강화하시겠습니까?\n▶  예\n    아니오\n\n", userlist[now].user_wenpon[num].upgrade, userlist[now].user_wenpon[num].name);
+
+										int se_key2 = 0;
+										int index = 0;
+
+										while (1) {
+											se_key2 = getch();
+											if (se_key2 == 224) {
+												se_key2 = getch();
+
+												switch (se_key2) {
+												case UP:
+													if (index > 0) {
+														index--;
+													}
+													break;
+
+												case DOWN:
+													if (index < 1) {
+														index++;
+													}
+													break;
+												}
+											}
+
+											else {
+												if (se_key2 == ENTER) {
+													flug = false;
+
+													up_per = (rand() % 100) + 1;
+
+													if (index == 0) {
+														if (!strcmp(userlist[now].user_wenpon[num].name, "Normal")) {
+															if (userlist[now].money > userlist[now].user_wenpon[num].money * 0.5) {
+																userlist[now].money -= userlist[now].user_wenpon[num].money * 0.5;
+																flug = true;
+
+																switch (userlist[now].user_wenpon[num].upgrade) {
+																case 0:
+																	if (up_per < 100) {
+																		userlist[now].user_wenpon[num].upgrade += 1;
+																		userlist[now].user_wenpon[num].ablilty += userlist[now].user_wenpon[num].ablilty * 0.5;
+																		userlist[now].user_wenpon[num].money += userlist[now].user_wenpon[num].money * 0.5;
+
+																		printf("\n\n강화에 성공하였습니다.");
+																	}
+																	break;
+																case 1:
+																	if (up_per < 95) {
+																		userlist[now].user_wenpon[num].upgrade += 1;
+																		userlist[now].user_wenpon[num].ablilty += userlist[now].user_wenpon[num].ablilty * 0.5;
+																		userlist[now].user_wenpon[num].money += userlist[now].user_wenpon[num].money * 0.5;
+
+																		printf("\n\n강화에 성공하였습니다.");
+																	}
+																	else {
+																		userlist[now].user_wenpon[num].upgrade -= 1;
+																		userlist[now].user_wenpon[num].ablilty -= normal[userlist[now].user_wenpon[num].upgrade].ablilty * 0.5;
+																		userlist[now].user_wenpon[num].money -= normal[userlist[now].user_wenpon[num].upgrade].money * 0.5;
+
+																		printf("\n\n강화에 실패하여 강화 등급이 하락하였습니다.");
+																	}
+																	break;
+
+																case 2:
+																	if (up_per < 90) {
+																		userlist[now].user_wenpon[num].upgrade += 1;
+																		userlist[now].user_wenpon[num].ablilty += userlist[now].user_wenpon[num].ablilty * 0.5;
+																		userlist[now].user_wenpon[num].money += userlist[now].user_wenpon[num].money * 0.5;
+
+																		printf("\n\n강화에 성공하였습니다.");
+																	}
+																	else {
+																		userlist[now].user_wenpon[num].upgrade -= 1;
+																		userlist[now].user_wenpon[num].ablilty -= normal[userlist[now].user_wenpon[num].upgrade].ablilty * 0.5;
+																		userlist[now].user_wenpon[num].money -= normal[userlist[now].user_wenpon[num].upgrade].money * 0.5;
+
+																		printf("\n\n강화에 실패하여 강화 등급이 하락하였습니다.");
+																	}
+																	break;
+
+																case 3:
+																	if (up_per < 85) {
+																		userlist[now].user_wenpon[num].upgrade += 1;
+																		userlist[now].user_wenpon[num].ablilty += userlist[now].user_wenpon[num].ablilty * 0.5;
+																		userlist[now].user_wenpon[num].money += userlist[now].user_wenpon[num].money * 0.5;
+
+																		printf("\n\n강화에 성공하였습니다.");
+																	}
+																	else {
+																		userlist[now].user_wenpon[num].upgrade -= 1;
+																		userlist[now].user_wenpon[num].ablilty -= normal[userlist[now].user_wenpon[num].upgrade].ablilty * 0.5;
+																		userlist[now].user_wenpon[num].money -= normal[userlist[now].user_wenpon[num].upgrade].money * 0.5;
+
+																		printf("\n\n강화에 실패하여 강화 등급이 하락하였습니다.");
+																	}
+																	break;
+
+																case 4:
+																	if (up_per < 80) {
+																		userlist[now].user_wenpon[num].upgrade += 1;
+																		userlist[now].user_wenpon[num].ablilty += userlist[now].user_wenpon[num].ablilty * 0.5;
+																		userlist[now].user_wenpon[num].money += userlist[now].user_wenpon[num].money * 0.5;
+
+																		printf("\n\n강화에 성공하였습니다.");
+																	}
+																	else {
+																		userlist[now].user_wenpon[num].upgrade -= 1;
+																		userlist[now].user_wenpon[num].ablilty -= normal[userlist[now].user_wenpon[num].upgrade].ablilty * 0.5;
+																		userlist[now].user_wenpon[num].money -= normal[userlist[now].user_wenpon[num].upgrade].money * 0.5;
+
+																		printf("\n\n강화에 실패하여 강화 등급이 하락하였습니다.");
+																	}
+																	break;
+
+																case 5:
+																	if (up_per < 70) {
+																		userlist[now].user_wenpon[num].upgrade += 1;
+																		userlist[now].user_wenpon[num].ablilty += userlist[now].user_wenpon[num].ablilty * 0.5;
+																		userlist[now].user_wenpon[num].money += userlist[now].user_wenpon[num].money * 0.5;
+
+																		printf("\n\n강화에 성공하였습니다.");
+																	}
+																	else {
+																		userlist[now].user_wenpon[num].upgrade -= 1;
+																		userlist[now].user_wenpon[num].ablilty -= normal[userlist[now].user_wenpon[num].upgrade].ablilty * 0.5;
+																		userlist[now].user_wenpon[num].money -= normal[userlist[now].user_wenpon[num].upgrade].money * 0.5;
+
+																		printf("\n\n강화에 실패하여 강화 등급이 하락하였습니다.");
+																	}
+																	break;
+
+																case 6:
+																	if (up_per < 60) {
+																		userlist[now].user_wenpon[num].upgrade += 1;
+																		userlist[now].user_wenpon[num].ablilty += userlist[now].user_wenpon[num].ablilty * 0.5;
+																		userlist[now].user_wenpon[num].money += userlist[now].user_wenpon[num].money * 0.5;
+
+																		printf("\n\n강화에 성공하였습니다.");
+																	}
+																	else {
+																		userlist[now].user_wenpon[num].upgrade -= 1;
+																		userlist[now].user_wenpon[num].ablilty -= normal[userlist[now].user_wenpon[num].upgrade].ablilty * 0.5;
+																		userlist[now].user_wenpon[num].money -= normal[userlist[now].user_wenpon[num].upgrade].money * 0.5;
+
+																		printf("\n\n강화에 실패하여 강화 등급이 하락하였습니다.");
+																	}
+																	break;
+
+																case 7:
+																	if (up_per < 50) {
+																		userlist[now].user_wenpon[num].upgrade += 1;
+																		userlist[now].user_wenpon[num].ablilty += userlist[now].user_wenpon[num].ablilty * 0.5;
+																		userlist[now].user_wenpon[num].money += userlist[now].user_wenpon[num].money * 0.5;
+
+																		printf("\n\n강화에 성공하였습니다.");
+																	}
+																	else {
+																		userlist[now].user_wenpon[num].upgrade -= 1;
+																		userlist[now].user_wenpon[num].ablilty -= normal[userlist[now].user_wenpon[num].upgrade].ablilty * 0.5;
+																		userlist[now].user_wenpon[num].money -= normal[userlist[now].user_wenpon[num].upgrade].money * 0.5;
+
+																		printf("\n\n강화에 실패하여 강화 등급이 하락하였습니다.");
+																	}
+																	break;
+
+																case 8:
+																	if (up_per < 45) {
+																		userlist[now].user_wenpon[num].upgrade += 1;
+																		userlist[now].user_wenpon[num].ablilty += userlist[now].user_wenpon[num].ablilty * 0.5;
+																		userlist[now].user_wenpon[num].money += userlist[now].user_wenpon[num].money * 0.5;
+
+																		printf("\n\n강화에 성공하였습니다.");
+																	}
+																	else {
+																		userlist[now].user_wenpon[num].upgrade -= 1;
+																		userlist[now].user_wenpon[num].ablilty -= normal[userlist[now].user_wenpon[num].upgrade].ablilty * 0.5;
+																		userlist[now].user_wenpon[num].money -= normal[userlist[now].user_wenpon[num].upgrade].money * 0.5;
+
+																		printf("\n\n강화에 실패하여 강화 등급이 하락하였습니다.");
+																	}
+																	break;
+
+																case 9:
+																	if (up_per < 40) {
+																		userlist[now].user_wenpon[num].upgrade += 1;
+																		userlist[now].user_wenpon[num].ablilty += userlist[now].user_wenpon[num].ablilty * 0.5;
+																		userlist[now].user_wenpon[num].money += userlist[now].user_wenpon[num].money * 0.5;
+
+																		printf("\n\n강화에 성공하였습니다.");
+																	}
+																	else {
+																		userlist[now].user_wenpon[num].upgrade -= 1;
+																		userlist[now].user_wenpon[num].ablilty -= normal[userlist[now].user_wenpon[num].upgrade].ablilty * 0.5;
+																		userlist[now].user_wenpon[num].money -= normal[userlist[now].user_wenpon[num].upgrade].money * 0.5;
+
+																		printf("\n\n강화에 실패하여 강화 등급이 하락하였습니다.");
+																	}
+																	break;
+
+																case 10:
+																	if (up_per < 35) {
+																		userlist[now].user_wenpon[num].upgrade += 1;
+																		userlist[now].user_wenpon[num].ablilty += userlist[now].user_wenpon[num].ablilty * 0.5;
+																		userlist[now].user_wenpon[num].money += userlist[now].user_wenpon[num].money * 0.5;
+
+																		printf("\n\n강화에 성공하였습니다.");
+																	}
+																	else {
+																		for (int i = num; i < userlist[now].count - 1; i++) {
+																			userlist[now].user_wenpon[i] = userlist[now].user_wenpon[i + 1];
+																		}
+																		ZeroMemory(&userlist[now].user_wenpon[userlist[now].count - 1], sizeof(Wenpon));
+																		userlist[now].count -= 1;
+
+																		printf("\n\n강화에 실패하여 무기가 파괴되었습니다.");
+																	}
+																	break;
+
+																case 11:
+																	if (up_per < 30) {
+																		userlist[now].user_wenpon[num].upgrade += 1;
+																		userlist[now].user_wenpon[num].ablilty += userlist[now].user_wenpon[num].ablilty * 0.5;
+																		userlist[now].user_wenpon[num].money += userlist[now].user_wenpon[num].money * 0.5;
+
+																		printf("\n\n강화에 성공하였습니다.");
+																	}
+																	else {
+																		for (int i = num; i < userlist[now].count - 1; i++) {
+																			userlist[now].user_wenpon[i] = userlist[now].user_wenpon[i + 1];
+																		}
+																		ZeroMemory(&userlist[now].user_wenpon[userlist[now].count - 1], sizeof(Wenpon));
+																		userlist[now].count -= 1;
+
+																		printf("\n\n강화에 실패하여 무기가 파괴되었습니다.");
+																	}
+																	break;
+
+																case 12:
+																	if (up_per < 20) {
+																		userlist[now].user_wenpon[num].upgrade += 1;
+																		userlist[now].user_wenpon[num].ablilty += userlist[now].user_wenpon[num].ablilty * 0.5;
+																		userlist[now].user_wenpon[num].money += userlist[now].user_wenpon[num].money * 0.5;
+
+																		printf("\n\n강화에 성공하였습니다.");
+																	}
+																	else {
+																		for (int i = num; i < userlist[now].count - 1; i++) {
+																			userlist[now].user_wenpon[i] = userlist[now].user_wenpon[i + 1];
+																		}
+																		ZeroMemory(&userlist[now].user_wenpon[userlist[now].count - 1], sizeof(Wenpon));
+																		userlist[now].count -= 1;
+
+																		printf("\n\n강화에 실패하여 무기가 파괴되었습니다.");
+																	}
+																	break;
+
+																case 13:
+																	if (up_per < 18) {
+																		userlist[now].user_wenpon[num].upgrade += 1;
+																		userlist[now].user_wenpon[num].ablilty += userlist[now].user_wenpon[num].ablilty * 0.5;
+																		userlist[now].user_wenpon[num].money += userlist[now].user_wenpon[num].money * 0.5;
+
+																		printf("\n\n강화에 성공하였습니다.");
+																	}
+																	else {
+																		for (int i = num; i < userlist[now].count - 1; i++) {
+																			userlist[now].user_wenpon[i] = userlist[now].user_wenpon[i + 1];
+																		}
+																		ZeroMemory(&userlist[now].user_wenpon[userlist[now].count - 1], sizeof(Wenpon));
+																		userlist[now].count -= 1;
+
+																		printf("\n\n강화에 실패하여 무기가 파괴되었습니다.");
+																	}
+																	break;
+
+																case 14:
+																	if (up_per < 15) {
+																		userlist[now].user_wenpon[num].upgrade += 1;
+																		userlist[now].user_wenpon[num].ablilty += userlist[now].user_wenpon[num].ablilty * 0.5;
+																		userlist[now].user_wenpon[num].money += userlist[now].user_wenpon[num].money * 0.5;
+
+																		printf("\n\n강화에 성공하였습니다.");
+																	}
+																	else {
+																		for (int i = num; i < userlist[now].count - 1; i++) {
+																			userlist[now].user_wenpon[i] = userlist[now].user_wenpon[i + 1];
+																		}
+																		ZeroMemory(&userlist[now].user_wenpon[userlist[now].count - 1], sizeof(Wenpon));
+																		userlist[now].count -= 1;
+
+																		printf("\n\n강화에 실패하여 무기가 파괴되었습니다.");
+																	}
+																	break;
+
+																case 15:
+																	if (up_per < 12) {
+																		userlist[now].user_wenpon[num].upgrade += 1;
+																		userlist[now].user_wenpon[num].ablilty += userlist[now].user_wenpon[num].ablilty * 0.5;
+																		userlist[now].user_wenpon[num].money += userlist[now].user_wenpon[num].money * 0.5;
+
+																		printf("\n\n강화에 성공하였습니다.");
+																	}
+																	else {
+																		for (int i = num; i < userlist[now].count - 1; i++) {
+																			userlist[now].user_wenpon[i] = userlist[now].user_wenpon[i + 1];
+																		}
+																		ZeroMemory(&userlist[now].user_wenpon[userlist[now].count - 1], sizeof(Wenpon));
+																		userlist[now].count -= 1;
+
+																		printf("\n\n강화에 실패하여 무기가 파괴되었습니다.");
+																	}
+																	break;
+
+																case 16:
+																	if (up_per < 10) {
+																		userlist[now].user_wenpon[num].upgrade += 1;
+																		userlist[now].user_wenpon[num].ablilty += userlist[now].user_wenpon[num].ablilty * 0.5;
+																		userlist[now].user_wenpon[num].money += userlist[now].user_wenpon[num].money * 0.5;
+
+																		printf("\n\n강화에 성공하였습니다.");
+																	}
+																	else {
+																		for (int i = num; i < userlist[now].count - 1; i++) {
+																			userlist[now].user_wenpon[i] = userlist[now].user_wenpon[i + 1];
+																		}
+																		ZeroMemory(&userlist[now].user_wenpon[userlist[now].count - 1], sizeof(Wenpon));
+																		userlist[now].count -= 1;
+
+																		printf("\n\n강화에 실패하여 무기가 파괴되었습니다.");
+																	}
+																	break;
+
+																case 17:
+																	if (up_per < 8) {
+																		userlist[now].user_wenpon[num].upgrade += 1;
+																		userlist[now].user_wenpon[num].ablilty += userlist[now].user_wenpon[num].ablilty * 0.5;
+																		userlist[now].user_wenpon[num].money += userlist[now].user_wenpon[num].money * 0.5;
+
+																		printf("\n\n강화에 성공하였습니다.");
+																		printf("\n축하합니다! Normal 최대 강화 수치에 도달하셨습니다.");
+																	}
+																	else {
+																		for (int i = num; i < userlist[now].count - 1; i++) {
+																			userlist[now].user_wenpon[i] = userlist[now].user_wenpon[i + 1];
+																		}
+																		ZeroMemory(&userlist[now].user_wenpon[userlist[now].count - 1], sizeof(Wenpon));
+																		userlist[now].count -= 1;
+
+																		printf("\n\n강화에 실패하여 무기가 파괴되었습니다.");
+																	}
+																	break;
+
+																default:
+																	userlist[now].money += userlist[now].user_wenpon[num].money * 0.5;
+																	printf("\n\n강화 할 수 있는 최대 등급에 도달하셨습니다.");
+																	break;
+																}
+															}
+														}
+
+														if (!strcmp(userlist[now].user_wenpon[num].name, "Rare")) {
+															if (userlist[now].money > userlist[now].user_wenpon[num].money * 0.5) {
+																userlist[now].money -= userlist[now].user_wenpon[num].money * 0.5;
+																flug = true;
+
+																switch (userlist[now].user_wenpon[num].upgrade) {
+																case 0:
+																	if (up_per < 100) {
+																		userlist[now].user_wenpon[num].upgrade += 1;
+																		userlist[now].user_wenpon[num].ablilty += userlist[now].user_wenpon[num].ablilty * 0.5;
+																		userlist[now].user_wenpon[num].money += userlist[now].user_wenpon[num].money * 0.5;
+
+																		printf("\n\n강화에 성공하였습니다.");
+																	}
+																	break;
+																case 1:
+																	if (up_per < 95) {
+																		userlist[now].user_wenpon[num].upgrade += 1;
+																		userlist[now].user_wenpon[num].ablilty += userlist[now].user_wenpon[num].ablilty * 0.5;
+																		userlist[now].user_wenpon[num].money += userlist[now].user_wenpon[num].money * 0.5;
+
+																		printf("\n\n강화에 성공하였습니다.");
+																	}
+																	else {
+																		userlist[now].user_wenpon[num].upgrade -= 1;
+																		userlist[now].user_wenpon[num].ablilty -= rare[userlist[now].user_wenpon[num].upgrade].ablilty * 0.5;
+																		userlist[now].user_wenpon[num].money -= rare[userlist[now].user_wenpon[num].upgrade].money * 0.5;
+
+																		printf("\n\n강화에 실패하여 강화 등급이 하락하였습니다.");
+																	}
+																	break;
+
+																case 2:
+																	if (up_per < 85) {
+																		userlist[now].user_wenpon[num].upgrade += 1;
+																		userlist[now].user_wenpon[num].ablilty += userlist[now].user_wenpon[num].ablilty * 0.5;
+																		userlist[now].user_wenpon[num].money += userlist[now].user_wenpon[num].money * 0.5;
+
+																		printf("\n\n강화에 성공하였습니다.");
+																	}
+																	else {
+																		userlist[now].user_wenpon[num].upgrade -= 1;
+																		userlist[now].user_wenpon[num].ablilty -= rare[userlist[now].user_wenpon[num].upgrade].ablilty * 0.5;
+																		userlist[now].user_wenpon[num].money -= rare[userlist[now].user_wenpon[num].upgrade].money * 0.5;
+
+																		printf("\n\n강화에 실패하여 강화 등급이 하락하였습니다.");
+																	}
+																	break;
+
+																case 3:
+																	if (up_per < 75) {
+																		userlist[now].user_wenpon[num].upgrade += 1;
+																		userlist[now].user_wenpon[num].ablilty += userlist[now].user_wenpon[num].ablilty * 0.5;
+																		userlist[now].user_wenpon[num].money += userlist[now].user_wenpon[num].money * 0.5;
+
+																		printf("\n\n강화에 성공하였습니다.");
+																	}
+																	else {
+																		userlist[now].user_wenpon[num].upgrade -= 1;
+																		userlist[now].user_wenpon[num].ablilty -= rare[userlist[now].user_wenpon[num].upgrade].ablilty * 0.5;
+																		userlist[now].user_wenpon[num].money -= rare[userlist[now].user_wenpon[num].upgrade].money * 0.5;
+
+																		printf("\n\n강화에 실패하여 강화 등급이 하락하였습니다.");
+																	}
+																	break;
+
+																case 4:
+																	if (up_per < 65) {
+																		userlist[now].user_wenpon[num].upgrade += 1;
+																		userlist[now].user_wenpon[num].ablilty += userlist[now].user_wenpon[num].ablilty * 0.5;
+																		userlist[now].user_wenpon[num].money += userlist[now].user_wenpon[num].money * 0.5;
+
+																		printf("\n\n강화에 성공하였습니다.");
+																	}
+																	else {
+																		userlist[now].user_wenpon[num].upgrade -= 1;
+																		userlist[now].user_wenpon[num].ablilty -= rare[userlist[now].user_wenpon[num].upgrade].ablilty * 0.5;
+																		userlist[now].user_wenpon[num].money -= rare[userlist[now].user_wenpon[num].upgrade].money * 0.5;
+
+																		printf("\n\n강화에 실패하여 강화 등급이 하락하였습니다.");
+																	}
+																	break;
+
+																case 5:
+																	if (up_per < 55) {
+																		userlist[now].user_wenpon[num].upgrade += 1;
+																		userlist[now].user_wenpon[num].ablilty += userlist[now].user_wenpon[num].ablilty * 0.5;
+																		userlist[now].user_wenpon[num].money += userlist[now].user_wenpon[num].money * 0.5;
+
+																		printf("\n\n강화에 성공하였습니다.");
+																	}
+																	else {
+																		userlist[now].user_wenpon[num].upgrade -= 1;
+																		userlist[now].user_wenpon[num].ablilty -= rare[userlist[now].user_wenpon[num].upgrade].ablilty * 0.5;
+																		userlist[now].user_wenpon[num].money -= rare[userlist[now].user_wenpon[num].upgrade].money * 0.5;
+
+																		printf("\n\n강화에 실패하여 강화 등급이 하락하였습니다.");
+																	}
+																	break;
+
+																case 6:
+																	if (up_per < 45) {
+																		userlist[now].user_wenpon[num].upgrade += 1;
+																		userlist[now].user_wenpon[num].ablilty += userlist[now].user_wenpon[num].ablilty * 0.5;
+																		userlist[now].user_wenpon[num].money += userlist[now].user_wenpon[num].money * 0.5;
+
+																		printf("\n\n강화에 성공하였습니다.");
+																	}
+																	else {
+																		userlist[now].user_wenpon[num].upgrade -= 1;
+																		userlist[now].user_wenpon[num].ablilty -= rare[userlist[now].user_wenpon[num].upgrade].ablilty * 0.5;
+																		userlist[now].user_wenpon[num].money -= rare[userlist[now].user_wenpon[num].upgrade].money * 0.5;
+
+																		printf("\n\n강화에 실패하여 강화 등급이 하락하였습니다.");
+																	}
+																	break;
+
+																case 7:
+																	if (up_per < 40) {
+																		userlist[now].user_wenpon[num].upgrade += 1;
+																		userlist[now].user_wenpon[num].ablilty += userlist[now].user_wenpon[num].ablilty * 0.5;
+																		userlist[now].user_wenpon[num].money += userlist[now].user_wenpon[num].money * 0.5;
+
+																		printf("\n\n강화에 성공하였습니다.");
+																	}
+																	else {
+																		userlist[now].user_wenpon[num].upgrade -= 1;
+																		userlist[now].user_wenpon[num].ablilty -= rare[userlist[now].user_wenpon[num].upgrade].ablilty * 0.5;
+																		userlist[now].user_wenpon[num].money -= rare[userlist[now].user_wenpon[num].upgrade].money * 0.5;
+
+																		printf("\n\n강화에 실패하여 강화 등급이 하락하였습니다.");
+																	}
+																	break;
+
+																case 8:
+																	if (up_per < 35) {
+																		userlist[now].user_wenpon[num].upgrade += 1;
+																		userlist[now].user_wenpon[num].ablilty += userlist[now].user_wenpon[num].ablilty * 0.5;
+																		userlist[now].user_wenpon[num].money += userlist[now].user_wenpon[num].money * 0.5;
+
+																		printf("\n\n강화에 성공하였습니다.");
+																	}
+																	else {
+																		userlist[now].user_wenpon[num].upgrade -= 1;
+																		userlist[now].user_wenpon[num].ablilty -= rare[userlist[now].user_wenpon[num].upgrade].ablilty * 0.5;
+																		userlist[now].user_wenpon[num].money -= rare[userlist[now].user_wenpon[num].upgrade].money * 0.5;
+
+																		printf("\n\n강화에 실패하여 강화 등급이 하락하였습니다.");
+																	}
+																	break;
+
+																case 9:
+																	if (up_per < 30) {
+																		userlist[now].user_wenpon[num].upgrade += 1;
+																		userlist[now].user_wenpon[num].ablilty += userlist[now].user_wenpon[num].ablilty * 0.5;
+																		userlist[now].user_wenpon[num].money += userlist[now].user_wenpon[num].money * 0.5;
+
+																		printf("\n\n강화에 성공하였습니다.");
+																	}
+																	else {
+																		userlist[now].user_wenpon[num].upgrade -= 1;
+																		userlist[now].user_wenpon[num].ablilty -= rare[userlist[now].user_wenpon[num].upgrade].ablilty * 0.5;
+																		userlist[now].user_wenpon[num].money -= rare[userlist[now].user_wenpon[num].upgrade].money * 0.5;
+
+																		printf("\n\n강화에 실패하여 강화 등급이 하락하였습니다.");
+																	}
+																	break;
+
+																case 10:
+																	if (up_per < 25) {
+																		userlist[now].user_wenpon[num].upgrade += 1;
+																		userlist[now].user_wenpon[num].ablilty += userlist[now].user_wenpon[num].ablilty * 0.5;
+																		userlist[now].user_wenpon[num].money += userlist[now].user_wenpon[num].money * 0.5;
+
+																		printf("\n\n강화에 성공하였습니다.");
+																	}
+																	else {
+																		for (int i = num; i < userlist[now].count - 1; i++) {
+																			userlist[now].user_wenpon[i] = userlist[now].user_wenpon[i + 1];
+																		}
+																		ZeroMemory(&userlist[now].user_wenpon[userlist[now].count - 1], sizeof(Wenpon));
+																		userlist[now].count -= 1;
+
+																		printf("\n\n강화에 실패하여 무기가 파괴되었습니다.");
+																	}
+																	break;
+
+																case 11:
+																	if (up_per < 22) {
+																		userlist[now].user_wenpon[num].upgrade += 1;
+																		userlist[now].user_wenpon[num].ablilty += userlist[now].user_wenpon[num].ablilty * 0.5;
+																		userlist[now].user_wenpon[num].money += userlist[now].user_wenpon[num].money * 0.5;
+
+																		printf("\n\n강화에 성공하였습니다.");
+																	}
+																	else {
+																		for (int i = num; i < userlist[now].count - 1; i++) {
+																			userlist[now].user_wenpon[i] = userlist[now].user_wenpon[i + 1];
+																		}
+																		ZeroMemory(&userlist[now].user_wenpon[userlist[now].count - 1], sizeof(Wenpon));
+																		userlist[now].count -= 1;
+
+																		printf("\n\n강화에 실패하여 무기가 파괴되었습니다.");
+																	}
+																	break;
+
+																case 12:
+																	if (up_per < 18) {
+																		userlist[now].user_wenpon[num].upgrade += 1;
+																		userlist[now].user_wenpon[num].ablilty += userlist[now].user_wenpon[num].ablilty * 0.5;
+																		userlist[now].user_wenpon[num].money += userlist[now].user_wenpon[num].money * 0.5;
+
+																		printf("\n\n강화에 성공하였습니다.");
+																	}
+																	else {
+																		for (int i = num; i < userlist[now].count - 1; i++) {
+																			userlist[now].user_wenpon[i] = userlist[now].user_wenpon[i + 1];
+																		}
+																		ZeroMemory(&userlist[now].user_wenpon[userlist[now].count - 1], sizeof(Wenpon));
+																		userlist[now].count -= 1;
+
+																		printf("\n\n강화에 실패하여 무기가 파괴되었습니다.");
+																	}
+																	break;
+
+																case 13:
+																	if (up_per < 15) {
+																		userlist[now].user_wenpon[num].upgrade += 1;
+																		userlist[now].user_wenpon[num].ablilty += userlist[now].user_wenpon[num].ablilty * 0.5;
+																		userlist[now].user_wenpon[num].money += userlist[now].user_wenpon[num].money * 0.5;
+
+																		printf("\n\n강화에 성공하였습니다.");
+																	}
+																	else {
+																		for (int i = num; i < userlist[now].count - 1; i++) {
+																			userlist[now].user_wenpon[i] = userlist[now].user_wenpon[i + 1];
+																		}
+																		ZeroMemory(&userlist[now].user_wenpon[userlist[now].count - 1], sizeof(Wenpon));
+																		userlist[now].count -= 1;
+
+																		printf("\n\n강화에 실패하여 무기가 파괴되었습니다.");
+																	}
+																	break;
+
+																case 14:
+																	if (up_per < 10) {
+																		userlist[now].user_wenpon[num].upgrade += 1;
+																		userlist[now].user_wenpon[num].ablilty += userlist[now].user_wenpon[num].ablilty * 0.5;
+																		userlist[now].user_wenpon[num].money += userlist[now].user_wenpon[num].money * 0.5;
+
+																		printf("\n\n강화에 성공하였습니다.");
+																	}
+																	else {
+																		for (int i = num; i < userlist[now].count - 1; i++) {
+																			userlist[now].user_wenpon[i] = userlist[now].user_wenpon[i + 1];
+																		}
+																		ZeroMemory(&userlist[now].user_wenpon[userlist[now].count - 1], sizeof(Wenpon));
+																		userlist[now].count -= 1;
+
+																		printf("\n\n강화에 실패하여 무기가 파괴되었습니다.");
+																	}
+																	break;
+
+																case 15:
+																	if (up_per < 8) {
+																		userlist[now].user_wenpon[num].upgrade += 1;
+																		userlist[now].user_wenpon[num].ablilty += userlist[now].user_wenpon[num].ablilty * 0.5;
+																		userlist[now].user_wenpon[num].money += userlist[now].user_wenpon[num].money * 0.5;
+
+																		printf("\n\n강화에 성공하였습니다.");
+																	}
+																	else {
+																		for (int i = num; i < userlist[now].count - 1; i++) {
+																			userlist[now].user_wenpon[i] = userlist[now].user_wenpon[i + 1];
+																		}
+																		ZeroMemory(&userlist[now].user_wenpon[userlist[now].count - 1], sizeof(Wenpon));
+																		userlist[now].count -= 1;
+
+																		printf("\n\n강화에 실패하여 무기가 파괴되었습니다.");
+																	}
+																	break;
+
+																case 16:
+																	if (up_per < 5) {
+																		userlist[now].user_wenpon[num].upgrade += 1;
+																		userlist[now].user_wenpon[num].ablilty += userlist[now].user_wenpon[num].ablilty * 0.5;
+																		userlist[now].user_wenpon[num].money += userlist[now].user_wenpon[num].money * 0.5;
+
+																		printf("\n\n강화에 성공하였습니다.");
+																	}
+																	else {
+																		for (int i = num; i < userlist[now].count - 1; i++) {
+																			userlist[now].user_wenpon[i] = userlist[now].user_wenpon[i + 1];
+																		}
+																		ZeroMemory(&userlist[now].user_wenpon[userlist[now].count - 1], sizeof(Wenpon));
+																		userlist[now].count -= 1;
+
+																		printf("\n\n강화에 실패하여 무기가 파괴되었습니다.");
+																	}
+																	break;
+
+																default:
+																	userlist[now].money += userlist[now].user_wenpon[num].money * 0.5;
+																	printf("\n\n강화 할 수 있는 최대 등급에 도달하셨습니다.");
+																	break;
+																}
+															}
+														}
+
+														if (!strcmp(userlist[now].user_wenpon[num].name, "Epic")) {
+															if (userlist[now].money > userlist[now].user_wenpon[num].money * 0.5) {
+																userlist[now].money -= userlist[now].user_wenpon[num].money * 0.5;
+																flug = true;
+
+																switch (userlist[now].user_wenpon[num].upgrade) {
+																case 0:
+																	if (up_per < 100) {
+																		userlist[now].user_wenpon[num].upgrade += 1;
+																		userlist[now].user_wenpon[num].ablilty += userlist[now].user_wenpon[num].ablilty * 0.5;
+																		userlist[now].user_wenpon[num].money += userlist[now].user_wenpon[num].money * 0.5;
+
+																		printf("\n\n강화에 성공하였습니다.");
+																	}
+																	break;
+																case 1:
+																	if (up_per < 90) {
+																		userlist[now].user_wenpon[num].upgrade += 1;
+																		userlist[now].user_wenpon[num].ablilty += userlist[now].user_wenpon[num].ablilty * 0.5;
+																		userlist[now].user_wenpon[num].money += userlist[now].user_wenpon[num].money * 0.5;
+
+																		printf("\n\n강화에 성공하였습니다.");
+																	}
+																	else {
+																		userlist[now].user_wenpon[num].upgrade -= 1;
+																		userlist[now].user_wenpon[num].ablilty -= epic[userlist[now].user_wenpon[num].upgrade].ablilty * 0.5;
+																		userlist[now].user_wenpon[num].money -= epic[userlist[now].user_wenpon[num].upgrade].money * 0.5;
+
+																		printf("\n\n강화에 실패하여 강화 등급이 하락하였습니다.");
+																	}
+																	break;
+
+																case 2:
+																	if (up_per < 80) {
+																		userlist[now].user_wenpon[num].upgrade += 1;
+																		userlist[now].user_wenpon[num].ablilty += userlist[now].user_wenpon[num].ablilty * 0.5;
+																		userlist[now].user_wenpon[num].money += userlist[now].user_wenpon[num].money * 0.5;
+
+																		printf("\n\n강화에 성공하였습니다.");
+																	}
+																	else {
+																		userlist[now].user_wenpon[num].upgrade -= 1;
+																		userlist[now].user_wenpon[num].ablilty -= epic[userlist[now].user_wenpon[num].upgrade].ablilty * 0.5;
+																		userlist[now].user_wenpon[num].money -= epic[userlist[now].user_wenpon[num].upgrade].money * 0.5;
+
+																		printf("\n\n강화에 실패하여 강화 등급이 하락하였습니다.");
+																	}
+																	break;
+
+																case 3:
+																	if (up_per < 70) {
+																		userlist[now].user_wenpon[num].upgrade += 1;
+																		userlist[now].user_wenpon[num].ablilty += userlist[now].user_wenpon[num].ablilty * 0.5;
+																		userlist[now].user_wenpon[num].money += userlist[now].user_wenpon[num].money * 0.5;
+
+																		printf("\n\n강화에 성공하였습니다.");
+																	}
+																	else {
+																		userlist[now].user_wenpon[num].upgrade -= 1;
+																		userlist[now].user_wenpon[num].ablilty -= epic[userlist[now].user_wenpon[num].upgrade].ablilty * 0.5;
+																		userlist[now].user_wenpon[num].money -= epic[userlist[now].user_wenpon[num].upgrade].money * 0.5;
+
+																		printf("\n\n강화에 실패하여 강화 등급이 하락하였습니다.");
+																	}
+																	break;
+
+																case 4:
+																	if (up_per < 60) {
+																		userlist[now].user_wenpon[num].upgrade += 1;
+																		userlist[now].user_wenpon[num].ablilty += userlist[now].user_wenpon[num].ablilty * 0.5;
+																		userlist[now].user_wenpon[num].money += userlist[now].user_wenpon[num].money * 0.5;
+
+																		printf("\n\n강화에 성공하였습니다.");
+																	}
+																	else {
+																		userlist[now].user_wenpon[num].upgrade -= 1;
+																		userlist[now].user_wenpon[num].ablilty -= epic[userlist[now].user_wenpon[num].upgrade].ablilty * 0.5;
+																		userlist[now].user_wenpon[num].money -= epic[userlist[now].user_wenpon[num].upgrade].money * 0.5;
+
+																		printf("\n\n강화에 실패하여 강화 등급이 하락하였습니다.");
+																	}
+																	break;
+
+																case 5:
+																	if (up_per < 50) {
+																		userlist[now].user_wenpon[num].upgrade += 1;
+																		userlist[now].user_wenpon[num].ablilty += userlist[now].user_wenpon[num].ablilty * 0.5;
+																		userlist[now].user_wenpon[num].money += userlist[now].user_wenpon[num].money * 0.5;
+
+																		printf("\n\n강화에 성공하였습니다.");
+																	}
+																	else {
+																		userlist[now].user_wenpon[num].upgrade -= 1;
+																		userlist[now].user_wenpon[num].ablilty -= epic[userlist[now].user_wenpon[num].upgrade].ablilty * 0.5;
+																		userlist[now].user_wenpon[num].money -= epic[userlist[now].user_wenpon[num].upgrade].money * 0.5;
+
+																		printf("\n\n강화에 실패하여 강화 등급이 하락하였습니다.");
+																	}
+																	break;
+
+																case 6:
+																	if (up_per < 40) {
+																		userlist[now].user_wenpon[num].upgrade += 1;
+																		userlist[now].user_wenpon[num].ablilty += userlist[now].user_wenpon[num].ablilty * 0.5;
+																		userlist[now].user_wenpon[num].money += userlist[now].user_wenpon[num].money * 0.5;
+
+																		printf("\n\n강화에 성공하였습니다.");
+																	}
+																	else {
+																		userlist[now].user_wenpon[num].upgrade -= 1;
+																		userlist[now].user_wenpon[num].ablilty -= epic[userlist[now].user_wenpon[num].upgrade].ablilty * 0.5;
+																		userlist[now].user_wenpon[num].money -= epic[userlist[now].user_wenpon[num].upgrade].money * 0.5;
+
+																		printf("\n\n강화에 실패하여 강화 등급이 하락하였습니다.");
+																	}
+																	break;
+
+																case 7:
+																	if (up_per < 35) {
+																		userlist[now].user_wenpon[num].upgrade += 1;
+																		userlist[now].user_wenpon[num].ablilty += userlist[now].user_wenpon[num].ablilty * 0.5;
+																		userlist[now].user_wenpon[num].money += userlist[now].user_wenpon[num].money * 0.5;
+
+																		printf("\n\n강화에 성공하였습니다.");
+																	}
+																	else {
+																		userlist[now].user_wenpon[num].upgrade -= 1;
+																		userlist[now].user_wenpon[num].ablilty -= epic[userlist[now].user_wenpon[num].upgrade].ablilty * 0.5;
+																		userlist[now].user_wenpon[num].money -= epic[userlist[now].user_wenpon[num].upgrade].money * 0.5;
+
+																		printf("\n\n강화에 실패하여 강화 등급이 하락하였습니다.");
+																	}
+																	break;
+
+																case 8:
+																	if (up_per < 30) {
+																		userlist[now].user_wenpon[num].upgrade += 1;
+																		userlist[now].user_wenpon[num].ablilty += userlist[now].user_wenpon[num].ablilty * 0.5;
+																		userlist[now].user_wenpon[num].money += userlist[now].user_wenpon[num].money * 0.5;
+
+																		printf("\n\n강화에 성공하였습니다.");
+																	}
+																	else {
+																		userlist[now].user_wenpon[num].upgrade -= 1;
+																		userlist[now].user_wenpon[num].ablilty -= epic[userlist[now].user_wenpon[num].upgrade].ablilty * 0.5;
+																		userlist[now].user_wenpon[num].money -= epic[userlist[now].user_wenpon[num].upgrade].money * 0.5;
+
+																		printf("\n\n강화에 실패하여 강화 등급이 하락하였습니다.");
+																	}
+																	break;
+
+																case 9:
+																	if (up_per < 25) {
+																		userlist[now].user_wenpon[num].upgrade += 1;
+																		userlist[now].user_wenpon[num].ablilty += userlist[now].user_wenpon[num].ablilty * 0.5;
+																		userlist[now].user_wenpon[num].money += userlist[now].user_wenpon[num].money * 0.5;
+
+																		printf("\n\n강화에 성공하였습니다.");
+																	}
+																	else {
+																		userlist[now].user_wenpon[num].upgrade -= 1;
+																		userlist[now].user_wenpon[num].ablilty -= epic[userlist[now].user_wenpon[num].upgrade].ablilty * 0.5;
+																		userlist[now].user_wenpon[num].money -= epic[userlist[now].user_wenpon[num].upgrade].money * 0.5;
+
+																		printf("\n\n강화에 실패하여 강화 등급이 하락하였습니다.");
+																	}
+																	break;
+
+																case 10:
+																	if (up_per < 20) {
+																		userlist[now].user_wenpon[num].upgrade += 1;
+																		userlist[now].user_wenpon[num].ablilty += userlist[now].user_wenpon[num].ablilty * 0.5;
+																		userlist[now].user_wenpon[num].money += userlist[now].user_wenpon[num].money * 0.5;
+
+																		printf("\n\n강화에 성공하였습니다.");
+																	}
+																	else {
+																		for (int i = num; i < userlist[now].count - 1; i++) {
+																			userlist[now].user_wenpon[i] = userlist[now].user_wenpon[i + 1];
+																		}
+																		ZeroMemory(&userlist[now].user_wenpon[userlist[now].count - 1], sizeof(Wenpon));
+																		userlist[now].count -= 1;
+
+																		printf("\n\n강화에 실패하여 무기가 파괴되었습니다.");
+																	}
+																	break;
+
+																case 11:
+																	if (up_per < 18) {
+																		userlist[now].user_wenpon[num].upgrade += 1;
+																		userlist[now].user_wenpon[num].ablilty += userlist[now].user_wenpon[num].ablilty * 0.5;
+																		userlist[now].user_wenpon[num].money += userlist[now].user_wenpon[num].money * 0.5;
+
+																		printf("\n\n강화에 성공하였습니다.");
+																	}
+																	else {
+																		for (int i = num; i < userlist[now].count - 1; i++) {
+																			userlist[now].user_wenpon[i] = userlist[now].user_wenpon[i + 1];
+																		}
+																		ZeroMemory(&userlist[now].user_wenpon[userlist[now].count - 1], sizeof(Wenpon));
+																		userlist[now].count -= 1;
+
+																		printf("\n\n강화에 실패하여 무기가 파괴되었습니다.");
+																	}
+																	break;
+
+																case 12:
+																	if (up_per < 15) {
+																		userlist[now].user_wenpon[num].upgrade += 1;
+																		userlist[now].user_wenpon[num].ablilty += userlist[now].user_wenpon[num].ablilty * 0.5;
+																		userlist[now].user_wenpon[num].money += userlist[now].user_wenpon[num].money * 0.5;
+
+																		printf("\n\n강화에 성공하였습니다.");
+																	}
+																	else {
+																		for (int i = num; i < userlist[now].count - 1; i++) {
+																			userlist[now].user_wenpon[i] = userlist[now].user_wenpon[i + 1];
+																		}
+																		ZeroMemory(&userlist[now].user_wenpon[userlist[now].count - 1], sizeof(Wenpon));
+																		userlist[now].count -= 1;
+
+																		printf("\n\n강화에 실패하여 무기가 파괴되었습니다.");
+																	}
+																	break;
+
+																case 13:
+																	if (up_per < 10) {
+																		userlist[now].user_wenpon[num].upgrade += 1;
+																		userlist[now].user_wenpon[num].ablilty += userlist[now].user_wenpon[num].ablilty * 0.5;
+																		userlist[now].user_wenpon[num].money += userlist[now].user_wenpon[num].money * 0.5;
+
+																		printf("\n\n강화에 성공하였습니다.");
+																	}
+																	else {
+																		for (int i = num; i < userlist[now].count - 1; i++) {
+																			userlist[now].user_wenpon[i] = userlist[now].user_wenpon[i + 1];
+																		}
+																		ZeroMemory(&userlist[now].user_wenpon[userlist[now].count - 1], sizeof(Wenpon));
+																		userlist[now].count -= 1;
+
+																		printf("\n\n강화에 실패하여 무기가 파괴되었습니다.");
+																	}
+																	break;
+
+																case 14:
+																	if (up_per < 5) {
+																		userlist[now].user_wenpon[num].upgrade += 1;
+																		userlist[now].user_wenpon[num].ablilty += userlist[now].user_wenpon[num].ablilty * 0.5;
+																		userlist[now].user_wenpon[num].money += userlist[now].user_wenpon[num].money * 0.5;
+
+																		printf("\n\n강화에 성공하였습니다.");
+																	}
+																	else {
+																		for (int i = num; i < userlist[now].count - 1; i++) {
+																			userlist[now].user_wenpon[i] = userlist[now].user_wenpon[i + 1];
+																		}
+																		ZeroMemory(&userlist[now].user_wenpon[userlist[now].count - 1], sizeof(Wenpon));
+																		userlist[now].count -= 1;
+
+																		printf("\n\n강화에 실패하여 무기가 파괴되었습니다.");
+																	}
+																	break;
+
+																case 15:
+																	if (up_per < 2) {
+																		userlist[now].user_wenpon[num].upgrade += 1;
+																		userlist[now].user_wenpon[num].ablilty += userlist[now].user_wenpon[num].ablilty * 0.5;
+																		userlist[now].user_wenpon[num].money += userlist[now].user_wenpon[num].money * 0.5;
+
+																		printf("\n\n강화에 성공하였습니다.");
+																	}
+																	else {
+																		for (int i = num; i < userlist[now].count - 1; i++) {
+																			userlist[now].user_wenpon[i] = userlist[now].user_wenpon[i + 1];
+																		}
+																		ZeroMemory(&userlist[now].user_wenpon[userlist[now].count - 1], sizeof(Wenpon));
+																		userlist[now].count -= 1;
+
+																		printf("\n\n강화에 실패하여 무기가 파괴되었습니다.");
+																	}
+																	break;
+
+																default:
+																	userlist[now].money += userlist[now].user_wenpon[num].money * 0.5;
+																	printf("\n\n강화 할 수 있는 최대 등급에 도달하셨습니다.");
+																	break;
+																}
+															}
+														}
+													}
+
+													else {
+														flug = true;
+														printf("\n\n강화를 취소했습니다.. 쫄았음?ㅋㅋ");
+													}
+
+													if (!flug) {
+														printf("\n\n강화 비용이 부족합니다.. 거지새ㄲ..");
+													}
+													getch();
+													break;
+												}
+											}
+
+											system("cls");
+
+											printf("\n[ 강화 ]\n*강화할 무기를 선택해주세요.\n\n");
+
+											for (int i = 0; i < userlist[now].count; i++) {
+												if (i == num) {
+													printf("▶  %s / %d / %.0lf / %.0lf\n", userlist[now].user_wenpon[i].name, userlist[now].user_wenpon[i].upgrade, userlist[now].user_wenpon[i].ablilty, userlist[now].user_wenpon[i].money);
+												}
+												else {
+													printf("    %s / %d / %.0lf / %.0lf\n", userlist[now].user_wenpon[i].name, userlist[now].user_wenpon[i].upgrade, userlist[now].user_wenpon[i].ablilty, userlist[now].user_wenpon[i].money);
+												}
+											}
+											printf("\n    돌아가기\n\n");
+
+											switch (index) {
+											case 0:
+												printf("\n\n%d %s 무기를 정말 강화하시겠습니까?\n▶  예\n    아니오\n\n", userlist[now].user_wenpon[num].upgrade, userlist[now].user_wenpon[num].name);
+												break;
+
+											case 1:
+												printf("\n\n%d %s 무기를 정말 강화하시겠습니까?\n    예\n▶  아니오\n\n", userlist[now].user_wenpon[num].upgrade, userlist[now].user_wenpon[num].name);
+												break;
+											}
+
+										}
+									}
+								}
+							}
+
+							system("cls");
+
+							printf("\n[ 강화 ]\n*강화할 무기를 선택해주세요.\n\n");
+
+							for (int i = 0; i < userlist[now].count; i++) {
+								if (i == num) {
+									printf("▶  %s / %d / %.0lf / %.0lf\n", userlist[now].user_wenpon[i].name, userlist[now].user_wenpon[i].upgrade, userlist[now].user_wenpon[i].ablilty, userlist[now].user_wenpon[i].money);
+								}
+								else {
+									printf("    %s / %d / %.0lf / %.0lf\n", userlist[now].user_wenpon[i].name, userlist[now].user_wenpon[i].upgrade, userlist[now].user_wenpon[i].ablilty, userlist[now].user_wenpon[i].money);
+								}
+							}
+
+							if (num == userlist[now].count) {
+								printf("\n▶  돌아가기\n\n");
+							}
+							else {
+								printf("\n    돌아가기\n\n");
+							}
+						}
+					}
+					break;
+
+				case 1:
+					printf("\n[ 강화 방법 ]\n\n강화 할 무기를 선택하고, 강화하기를 선택하면 됩니다.\n");
+					printf("\n[ 강화 비용 ]\n\n무기의 현재 금액의 0.5 배가 소비됩니다.\n");
+					printf("\n[ 강화 실패 시 ]\n\n10강 전이라면 하락, 10강 후라면 파괴가 됩니다.\n");
+					printf("\n[ 최대 강화 수치 ]\n\n Normal : 17강 , Rare : 16강, Epic : 15강\n");
+					printf("\n\n아무 키나 누르면 메뉴로 돌아갑니다 . . .");
+					getch();
+					break;
+
+				case 2:
+					return;
+
+				default:
+					break;
+				}
+			}
+		}
+
+		system("cls");
+
+		switch (sel) {
+		case 0:
+			printf("\n[ 메뉴 ]\n\n▶ 강화 무기 선택\n   강화 설명\n   돌아가기\n\n");
+			break;
+
+		case 1:
+			printf("\n[ 메뉴 ]\n\n   강화 무기 선택\n▶ 강화 설명\n   돌아가기\n\n");
+			break;
+
+		case 2:
+			printf("\n[ 메뉴 ]\n\n   강화 무기 선택\n   강화 설명\n▶ 돌아가기\n\n");
+			break;
+		}
+
+		for (int i = 0; i < *count; i++) {
+			if (!strcmp(userlist[i].id, nowuser.id) && !strcmp(userlist[i].pw, nowuser.pw)) {
+				printf("현재 잔액 : %.0lf\n\n", userlist[i].money);
+				now = i;
+				break;
+			}
+		}
+	}
+}
+
+void Store(User* userlist, User nowuser, int* count) {
+	Wenpon wenponlist[3];
+
+	strcpy(wenponlist[0].name, "Normal");
+	strcpy(wenponlist[1].name, "Rare");
+	strcpy(wenponlist[2].name, "Epic");
+
+	wenponlist[0].ablilty = 100;
+	wenponlist[1].ablilty = 250;
+	wenponlist[2].ablilty = 1000;
+
+	wenponlist[0].money = 1000;
+	wenponlist[1].money = 2500;
+	wenponlist[2].money = 10000;
+
+	int key = 0;
+	int sel = 0;
+
+	Wenpon temp;
+
+	int up_gacha = 0;
+	int wenpon_gacha = 0;
+	int now = 0;
+
+	int num;
+
+	bool flug = false;
+
+	printf("\n[ 상점 ]\n\n▶  일반 아이템 사기\n    랜덤 박스 사기\n    아이템 팔기\n    돌아가기\n\n");
+
+	for (int i = 0; i < *count; i++) {
+		if (!strcmp(userlist[i].id, nowuser.id) && !strcmp(userlist[i].pw, nowuser.pw)) {
+			printf("현재 잔액 : %.0lf\n\n", userlist[i].money);
+			now = i;
+			break;
+		}
+	}
+
+	while (1) {
+		key = 0;
+
+		key = getch();
+		if (key == 224) {
+			key = getch();
+
+			switch (key) {
+			case UP:
+				if (sel > 0) {
+					sel--;
+				}
+				break;
+
+			case DOWN:
+				if (sel < 3) {
+					sel++;
+				}
+				break;
+			}
+		}
+		else {
+			if (key == ENTER) {
+				switch (sel) {
+				case 0:
+					key = num = 0;
+
+					system("cls");
+
+					printf("\n[ Buy ]\n*아래의 모든 무기들은 강화 등급 0 입니다.\n\n");
+					printf("(이름 / 공격력 / 가격)\n\n");
+
+					for (int i = 0; i < 3; i++) {
+						if (i == num) {
+							printf("▶  %s / %.0lf / %.0lf\n", wenponlist[i].name, wenponlist[i].ablilty, wenponlist[i].money);
+						}
+						else {
+							printf("    %s / %.0lf / %.0lf\n", wenponlist[i].name, wenponlist[i].ablilty, wenponlist[i].money);
+						}
+					}
+					printf("\n    돌아가기\n");
+
+					while (1) {
+						key = getch();
+						if (key == 224) {
+							key = getch();
+
+							switch (key) {
+							case UP:
+								if (num > 0) {
+									num--;
+								}
+								break;
+
+							case DOWN:
+								if (num < 3) {
+									num++;
+								}
+								break;
+							}
+						}
+						else {
+							if (key == ENTER) {
+								if (num == 3) {
+									break;
+								}
+
+								if (userlist[now].money > wenponlist[num].money) {
+									userlist[now].user_wenpon[userlist[now].count] = wenponlist[num];
+									userlist[now].money -= wenponlist[num].money;
+
+									printf("\n\n%s 무기를 구매했습니다.", userlist[now].user_wenpon[userlist[now].count].name);
+									userlist[now].count += 1;
+								}
+								else {
+									printf("\n\n금액이 부족합니다 . . .");
+								}
+								getch();
+								break;
+							}
+						}
+
+						system("cls");
+
+						printf("\n[ Buy ]\n*아래의 모든 무기들은 강화 등급 0 입니다.\n\n");
+						printf("(이름 / 공격력 / 가격)\n\n");
+
+						for (int i = 0; i < 3; i++) {
+							if (i == num) {
+								printf("▶  %s / %.0lf / %.0lf\n", wenponlist[i].name, wenponlist[i].ablilty, wenponlist[i].money);
+							}
+							else {
+								printf("    %s / %.0lf / %.0lf\n", wenponlist[i].name, wenponlist[i].ablilty, wenponlist[i].money);
+							}
+						}
+						if (num == 3) {
+							printf("\n▶  돌아가기\n");
+						}
+						else {
+							printf("\n    돌아가기\n");
+						}
+					}
+					break;
+
+				case 1:
+					key = num = 0;
+
+					system("cls");
+
+					printf("\n[ BUY ]\n*아래의 모든 무기들의 강화 등급은 박스 별 랜덤 입니다.\n\n");
+					printf("▶  일반 아이템 박스(4~6)  /  가격 : 12600\n    고급 아이템 박스(7~9) / 가격 : 42700\n    특급 아이템 박스(10~12) / 가격 : 144000\n    돌아가기\n\n");
+
+					wenpon_gacha = rand() % 100;
+
+					if (wenpon_gacha > 0 && wenpon_gacha < 10) {
+						temp = wenponlist[2];
+					}
+					else if (wenpon_gacha > 10 && wenpon_gacha < 40) {
+						temp = wenponlist[1];
+					}
+					else {
+						temp = wenponlist[0];
+					}
+
+					while (1) {
+						key = getch();
+						if (key == 224) {
+							key = getch();
+
+							switch (key) {
+							case UP:
+								if (num > 0) {
+									num--;
+								}
+								break;
+
+							case DOWN:
+								if (num < 3) {
+									num++;
+								}
+								break;
+							}
+						}
+						else {
+							if (key == ENTER) {
+								if (num == 3) {
+									break;
+								}
+
+								switch (num) {
+								case 0:
+									if (userlist[now].money > 12600) {
+										userlist[now].money -= 12600;
+
+										flug = true;
+										up_gacha = (rand() % 3) + 4;
+
+										
+
+										//temp.upgrade = up_gacha;
+
+										//for (int i = 1; i < up_gacha; i++) {
+										//	temp.ablilty += temp.ablilty * 0.5;
+										//	temp.money += temp.money * 0.5;
+										//}
+									}
+									break;
+
+								case 1:
+									if (userlist[now].money > 42700) {
+										userlist[now].money -= 42700;
+
+										flug = true;
+										up_gacha = (rand() % 3) + 7;
+
+										//temp.upgrade = up_gacha;
+
+										//for (int i = 1; i < up_gacha; i++) {
+										//	temp.ablilty += temp.ablilty * 0.5;
+										//	temp.money += temp.money * 0.5;
+										//}
+									}
+									break;
+
+								case 2:
+									if (userlist[now].money > 144000) {
+										userlist[now].money -= 144000;
+
+										flug = true;
+										up_gacha = (rand() % 3) + 10;
+
+										//temp.upgrade = up_gacha;
+
+										//for (int i = 1; i < up_gacha; i++) {
+										//	temp.ablilty += temp.ablilty * 0.5;
+										//	temp.money += temp.money * 0.5;
+										//}
+									}
+									break;
+								}
+
+								if (!flug) {
+									printf("\n\n금액이 부족합니다 . . .");
+								}
+								else if (flug) {
+									if (!strcmp(temp.name , "Normal")) {
+										memcpy(&temp, &normal[up_gacha], sizeof(Normal));
+									}
+								
+									if (!strcmp(temp.name, "Rare")) {
+										memcpy(&temp, &rare[up_gacha], sizeof(Rare));
+									}
+
+									if (!strcmp(temp.name, "Epic")) {
+										memcpy(&temp, &epic[up_gacha], sizeof(Epic));
+									}
+
+									userlist[now].user_wenpon[userlist[now].count] = temp;
+									printf("\n\n아이템 박스에서 %d 강 %s 무기가 나왔습니다 !", userlist[now].user_wenpon[userlist[now].count].upgrade, userlist[now].user_wenpon[userlist[now].count].name);
+									userlist[now].count += 1;
+								}
+
+								getch();
+								break;
+							}
+						}
+
+						system("cls");
+						printf("\n[ BUY ]\n*아래의 모든 무기들의 강화 등급은 박스 별 랜덤 입니다.\n\n");
+
+						switch (num) {
+						case 0:
+							printf("▶  일반 아이템 박스(4~6)  /  가격 : 12600\n    고급 아이템 박스(7~9) / 가격 : 42700\n    특급 아이템 박스(10~12) / 가격 : 144000\n    돌아가기\n\n");
+							break;
+
+						case 1:
+							printf("    일반 아이템 박스(4~6)  /  가격 : 12600\n▶  고급 아이템 박스(7~9) / 가격 : 42700\n    특급 아이템 박스(10~12) / 가격 : 144000\n    돌아가기\n\n");
+							break;
+
+						case 2:
+							printf("    일반 아이템 박스(4~6)  /  가격 : 12600\n    고급 아이템 박스(7~9) / 가격 : 42700\n▶  특급 아이템 박스(10~12) / 가격 : 144000\n    돌아가기\n\n");
+							break;
+
+						case 3:
+							printf("    일반 아이템 박스(4~6)  /  가격 : 12600\n    고급 아이템 박스(7~9) / 가격 : 42700\n    특급 아이템 박스(10~12) / 가격 : 144000\n▶  돌아가기\n\n");
+							break;
+						}
+					}
+					break;
+
+				case 2:
+					if (userlist[now].count <= 0) {
+						printf("\n\n팔 수 있는 아이템이 없습니다.\n");
+						getch();
+					}
+
+					else {
+						system("cls");
+
+						key = num = 0;
+
+						printf("\n[ Sell ]\n*수수료는 10 %01c 가 붙습니다.\n\n", '%');
+						printf("(이름 / 업그레이드 / 공격력 / 가격)\n\n");
+
+						for (int j = 0; j < userlist[now].count; j++) {
+							if (j == num) {
+								printf("▶  %s / %d / %.0lf / %.0lf\n", userlist[now].user_wenpon[j].name, userlist[now].user_wenpon[j].upgrade, userlist[now].user_wenpon[j].ablilty, userlist[now].user_wenpon[j].money);
+							}
+							else {
+								printf("    %s / %d / %.0lf / %.0lf\n", userlist[now].user_wenpon[j].name, userlist[now].user_wenpon[j].upgrade, userlist[now].user_wenpon[j].ablilty, userlist[now].user_wenpon[j].money);
+							}
+						}
+						printf("\n    돌아가기\n\n");
+
+						while (1) {
+							key = getch();
+							if (key == 224) {
+								key = getch();
+
+								switch (key) {
+								case UP:
+									if (num > 0) {
+										num--;
+									}
+									break;
+
+								case DOWN:
+									if (num < userlist[now].count) {
+										num++;
+									}
+									break;
+								}
+							}
+
+							else {
+								if (key == ENTER) {
+									if (num == userlist[now].count) {
+										break;
+									}
+
+									printf("\n\n%d 강 %s 아이템을 팔았습니다.\n", userlist[now].user_wenpon[num].upgrade, userlist[now].user_wenpon[num].name);
+									userlist[now].money += userlist[now].user_wenpon[num].money * 0.9;
+
+									for (int k = num; k < userlist[now].count - 1; k++) {
+										userlist[now].user_wenpon[k] = userlist[now].user_wenpon[k + 1];
+									}
+
+									ZeroMemory(&userlist[now].user_wenpon[userlist[now].count - 1], sizeof(Wenpon));
+									userlist[now].count -= 1;
+
+									if (getch()) {
+										break;
+									}
+								}
+							}
+
+							system("cls");
+
+							printf("\n[ Sell ]\n*수수료는 10 %01c 가 붙습니다.\n\n", '%');
+							printf("(이름 / 업그레이드 / 공격력 / 가격)\n\n");
+
+							for (int j = 0; j < userlist[now].count; j++) {
+								if (j == num) {
+									printf("▶  %s / %d / %.0lf / %.0lf\n", userlist[now].user_wenpon[j].name, userlist[now].user_wenpon[j].upgrade, userlist[now].user_wenpon[j].ablilty, userlist[now].user_wenpon[j].money);
+								}
+								else {
+									printf("    %s / %d / %.0lf / %.0lf\n", userlist[now].user_wenpon[j].name, userlist[now].user_wenpon[j].upgrade, userlist[now].user_wenpon[j].ablilty, userlist[now].user_wenpon[j].money);
+								}
+							}
+							if (num == userlist[now].count) {
+								printf("\n▶  돌아가기\n\n");
+							}
+							else {
+								printf("\n    돌아가기\n\n");
+							}
+						}
+					}
+					break;
+
+				case 3:
+					return;
+				}
+			}
+		}
+
+		system("cls");
+
+		switch (sel) {
+		case 0:
+			printf("\n[ 상점 ]\n\n▶  일반 아이템 사기\n    랜덤 박스 사기\n    아이템 팔기\n    돌아가기\n\n");
+			break;
+
+		case 1:
+			printf("\n[ 상점 ]\n\n    일반 아이템 사기\n▶  랜덤 박스 사기\n    아이템 팔기\n    돌아가기\n\n");
+			break;
+
+		case 2:
+			printf("\n[ 상점 ]\n\n    일반 아이템 사기\n    랜덤 박스 사기\n▶  아이템 팔기\n    돌아가기\n\n");
+			break;
+
+		case 3:
+			printf("\n[ 상점 ]\n\n    일반 아이템 사기\n    랜덤 박스 사기\n    아이템 팔기\n▶  돌아가기\n\n");
+			break;
+		}
+
+		for (int i = 0; i < *count; i++) {
+			if (!strcmp(userlist[i].id, nowuser.id) && !strcmp(userlist[i].pw, nowuser.pw)) {
+				printf("현재 잔액 : %.0lf\n\n", userlist[i].money);
+				now = i;
+				break;
+			}
+		}
+
+	}
+}
+
+void Gamble(User* userlist, User nowuser, int* count) {
+	int key = 0;
+	int se_key = 0;
+
+	int sel = 0;
+	int now = 0;
+
+	printf("\n[ 메뉴 ]\n\n▶  주사위 영역 쟁탈\n    홀짝\n    돌아가기\n\n");
+
+	for (int i = 0; i < *count; i++) {
+		if (!strcmp(userlist[i].id, nowuser.id) && !strcmp(userlist[i].pw, nowuser.pw)) {
+			printf("현재 잔액 : %.0lf\n\n", userlist[i].money);
+			now = i;
+			break;
+		}
+	}
+
+	while (1) {
+		int dice = 0;
+		int money = 0;
+
+		key = getch();
+		if (key == 224) {
+			key = getch();
+			switch (key) {
+			case UP:
+				if (sel > 0) {
+					sel--;
+				}
+				break;
+
+			case DOWN:
+				if (sel < 2) {
+					sel++;
+				}
+				break;
+			}
+		}
+		else {
+			if (key == ENTER) {
+				switch (sel) {
+				case 0:
+					while (1) {
+						system("cls");
+
+						char player[30], ai[30], Board[30];
+
+						int num = 0, stak_player = 0, stak_ai = 0, money = 0;
+						int game_count = 30;
+
+						bool turn = false;
+
+						printf("\n[ 주사위 영역 쟁탈 ]\n\n");
+						printf("얼마를 거시겠습니까? (배당은 2배 입니다)\n");
+						printf("입력 : ");
+
+						scanf("%d", &money);
+
+						if (userlist[now].money < money) {
+							printf("\n\n가진 돈에 한해서 돈을 걸 수 있습니다. .");
+						}
+
+						else {
+							system("cls");
+
+							printf("\n\n\t\t\t남은 영역의 수 : %d 개\n", game_count);
+							printf("\t\tPLAYER");
+							printf("\t\t\t\t\tAI\n\n");
+
+							printf("\t");
+							for (int i = 0; i < 30; i++) {
+								Board[i] = 0;
+								printf("□");
+							}
+							printf("\n");
+							printf("      확보한 영역의 수 : %d 개", stak_player);
+							printf("\t\t\t확보한 영역의 수 : %d 개\n\n", stak_ai);
+
+							printf("\n\n\n\n\t아무키나 누르면 게임이 진행됩니다 . . .");
+
+							while (1) {
+								dice = (rand() % 6) + 1;
+
+								if (getch()) {
+									if (!turn) {
+										if (dice > game_count) {
+											stak_player += game_count;
+										}
+										else {
+											stak_player += dice;
+										}
+
+										game_count -= dice;
+
+										for (int i = 0; i < stak_player; i++) {
+											Board[i] = 1;
+										}
+
+										turn = true;
+									}
+									else {
+										if (dice > game_count) {
+											stak_ai += game_count;
+										}
+										else {
+											stak_ai += dice;
+										}
+										game_count -= dice;
+
+										for (int i = 29; i > 29 - stak_ai; i--) {
+											Board[i] = 1;
+										}
+
+										turn = false;
+									}
+									system("cls");
+								}
+
+								if (game_count <= 0 || stak_player > 15 || stak_ai > 15) {
+									game_count = 0;
+									system("cls");
+									break;
+								}
+
+								else {
+									printf("\n\n\t\t\t남은 영역의 수 : %d 개\n", game_count);
+									printf("\t\tPLAYER");
+									printf("\t\t\t\t\tAI\n\n");
+
+									printf("\t");
+									for (int i = 0; i < 30; i++) {
+										if (Board[i] == 0) {
+											printf("□");
+										}
+										else {
+											printf("■");
+										}
+									}
+									printf("\n");
+									printf("      확보한 영역의 수 : %d 개", stak_player);
+									printf("\t\t\t확보한 영역의 수 : %d 개\n\n", stak_ai);
+
+									printf("\n\n\n\n\t아무키나 누르면 게임이 진행됩니다 . . .");
+								}
+							}
+
+							printf("\n\n\t\t\t남은 영역의 수 : %d 개\n", game_count);
+							printf("\t\tPLAYER");
+							printf("\t\t\t\t\tAI\n\n");
+
+							printf("\t");
+							for (int i = 0; i < 30; i++) {
+								if (Board[i] == 0) {
+									printf("□");
+								}
+								else {
+									printf("■");
+								}
+							}
+							printf("\n");
+							printf("      확보한 영역의 수 : %d 개", stak_player);
+							printf("\t\t\t확보한 영역의 수 : %d 개\n\n", stak_ai);
+
+							if (stak_player > stak_ai) {
+								printf("\n\n\n\t게임에서 승리하였습니다.\n");
+								userlist[now].money += money * 2;
+							}
+							else {
+								printf("\n\n\n\t게임에서 패배하였습니다.\n");
+								userlist[now].money -= money;
+							}
+						}
+
+						if (getch()) {
+							break;
+						}
+					}
+					break;
+
+				case 1:
+						system("cls");
+
+						dice = (rand() % 12) + 1;
+
+						printf("\n[ 홀짝 게임 ]\n");
+						printf("\n얼마를 거시겠습니까?\n");
+						printf("입력 : ");
+
+						scanf("%d", &money);
+						if (userlist[now].money < money) {
+							printf("\n\n가진 돈에 한해서 돈을 걸 수 있습니다. .");
+						}
+
+						else {
+							system("cls");
+
+							int num;
+							num = 0;
+							printf("\n\n주사위가 던져졌습니다. 홀/짝 중 선택하세요. 맞추면 돈을 얻습니다.\n\n");
+							switch (num) {
+							case 0:
+								printf("▶  홀\n    짝\n");
+								break;
+
+							case 1:
+								printf("    홀\n▶  짝\n");
+								break;
+							}
+
+							while (1) {
+								se_key = getch();
+								if (se_key == 224) {
+									se_key = getch();
+
+									switch (se_key) {
+									case UP:
+										if (num > 0) {
+											num--;
+										}
+										break;
+
+									case DOWN:
+										if (num < 1) {
+											num++;
+										}
+										break;
+									}
+								}
+								else {
+									if (se_key == ENTER) {
+										bool winner = false;
+
+										if (dice % 2 == 0 && num == 1) {
+											winner = true;
+										}
+										else if (dice % 2 != 0 && num == 0) {
+											winner = true;
+										}
+
+										if (dice % 2 == 0) {
+											printf("\n\n주사위는  %d , 짝이 나왔습니다.", dice);
+										}
+										else {
+											printf("\n\n주사위는  %d , 홀이 나왔습니다.", dice);
+										}
+
+										if (winner) {
+											printf("\n\n도박에서 이기셨습니다.\n");
+											userlist[now].money += money * 2;
+										}
+										else {
+											printf("\n\n도박에서 패배했습니다.\n");
+											userlist[now].money -= money;
+										}
+
+										if (getch()) {
+											break;
+										}
+									}
+								}
+
+								system("cls");
+								printf("\n\n주사위가 던져졌습니다. 홀/짝 중 선택하세요. 맞추면 돈을 얻습니다.\n\n");
+								switch (num) {
+								case 0:
+									printf("▶  홀\n    짝\n");
+									break;
+
+								case 1:
+									printf("    홀\n▶  짝\n");
+									break;
+								}
+							}
+						}
+						break;
+
+				case 2:
+					return;
+				}
+			}
+		}
+
+		system("cls");
+		
+		switch (sel) {
+		case 0:
+			printf("\n[ 메뉴 ]\n\n▶  주사위 영역 쟁탈\n    홀짝\n    돌아가기\n\n");
+			break;
+
+		case 1:
+			printf("\n[ 메뉴 ]\n\n    주사위 영역 쟁탈\n▶  홀짝\n    돌아가기\n\n");
+			break;
+
+		case 2:
+			printf("\n[ 메뉴 ]\n\n    주사위 영역 쟁탈\n    홀짝\n▶  돌아가기\n\n");
+			break;
+		}
+		for (int i = 0; i < *count; i++) {
+			if (!strcmp(userlist[i].id, nowuser.id) && !strcmp(userlist[i].pw, nowuser.pw)) {
+				printf("현재 잔액 : %.0lf\n\n", userlist[i].money);
+				now = i;
+				break;
+			}
+		}
+	}
+}

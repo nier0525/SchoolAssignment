@@ -1,0 +1,139 @@
+﻿// Stack.c
+
+#include "Stack.h"
+
+void  AS_CreateStack(ArrayStack** Stack, int Capacity)
+{
+
+	(*Stack) = (ArrayStack*)malloc(sizeof(ArrayStack));      
+	(*Stack)->Nodes = (Node*)malloc(sizeof(Node)*Capacity);  
+															
+	(*Stack)->Capacity = Capacity;
+	(*Stack)->Top = 0;
+}
+
+void AS_DestroyStack(ArrayStack* Stack)
+{
+	free(Stack->Nodes);
+	free(Stack);
+}
+
+void AS_Push(ArrayStack* Stack, ElementType Data)
+{
+	int Position = Stack->Top; 
+
+	if (Position < Stack->Capacity)     
+	{
+		Stack->Nodes[Position].Data = Data; 
+		Stack->Top++;                          
+	}
+	else    
+		printf("스택이 꽉찼습니다.\n");
+}
+
+ElementType AS_Pop(ArrayStack* Stack)    
+{
+	int Position = --(Stack->Top);      
+
+	return Stack->Nodes[Position].Data; 
+}
+
+ElementType AS_Top(ArrayStack* Stack)  
+{
+	int Position = Stack->Top - 1;		
+
+	return Stack->Nodes[Position].Data; 
+}
+
+int AS_GetSize(ArrayStack* Stack) 
+{
+	return Stack->Top;    
+}
+
+int AS_IsEmpty(ArrayStack* Stack)
+{
+	return (Stack->Top == 0);    
+}
+
+///////////////////////////
+
+// TestStack.c
+
+#include "Stack.h"
+#include <stdio.h>
+#include <stdlib.h>
+
+int main(void)
+{
+	int i = 0;  
+	ArrayStack* Stack = NULL;     
+
+	AS_CreateStack(&Stack, 10);   
+
+	AS_Push(Stack, 3);       // 스택에 3을 넣음
+	AS_Push(Stack, 37);      // 스택에 37을 넣음
+	AS_Push(Stack, 11);      // 스택에 11을 넣음
+	AS_Push(Stack, 12);      // 스택에 12를 넣음
+
+	printf("Capacity: %d, Size: %d, Top: %d,  ",
+		Stack->Capacity, AS_GetSize(Stack), AS_Top(Stack));
+	printf("Top No: %d\n\n", Stack->Top);
+
+	for (i = 0; i < 4; i++) 
+	{
+		if (AS_IsEmpty(Stack))    
+			break;      
+
+		printf("Popped: %d, ", AS_Pop(Stack));    
+
+		if (!AS_IsEmpty(Stack)) {    
+			printf("Current Top: %d,  ", AS_Top(Stack));   
+			printf("Top No: %d\n\n", Stack->Top);
+		}
+		else    
+			printf("Stack Is Empty.\n\n");   
+	}
+
+	AS_DestroyStack(Stack);    
+
+	system("pause");
+	return 0;
+}
+
+
+
+///////////////////////
+
+
+// Stack.h
+
+#ifndef ARRAYSTACK_H
+#define ARRAYSTACK_H
+
+#include <stdio.h>
+#include <stdlib.h>
+
+typedef int ElementType;
+
+typedef struct tagNode
+{
+	ElementType Data;  
+} Node;
+
+typedef struct tagArrayStack
+{
+	int   Capacity;  
+	int   Top;       
+	Node* Nodes;    
+} ArrayStack;
+
+void        AS_CreateStack(ArrayStack** Stack, int Capacity);     
+void        AS_DestroyStack(ArrayStack* Stack);                  
+void        AS_Push(ArrayStack* Stack, ElementType Data);        
+ElementType AS_Pop(ArrayStack* Stack);                          
+ElementType AS_Top(ArrayStack* Stack);                          
+int         AS_GetSize(ArrayStack* Stack);                      
+int         AS_IsEmpty(ArrayStack* Stack);                      
+
+#endif ARRAYSTACK_H
+

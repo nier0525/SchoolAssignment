@@ -1,0 +1,164 @@
+#include <windows.h> // 윈도우 헤더파일
+
+LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM); // CALLBACK 매크로
+HINSTANCE g_hinst;   // 인스턴스 핸들
+LPCTSTR lpszClass = TEXT("심재철_2015031090"); // 제목 표시물에 표시되는 내용
+
+
+int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance
+	, LPSTR lpszCmdParam, int nCmdShow)
+{
+	HWND hWnd;
+	MSG Message;
+	WNDCLASS WndClass;
+	g_hinst = hInstance;
+
+	WndClass.cbClsExtra = 0;
+	WndClass.cbWndExtra = 0;
+	WndClass.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
+	WndClass.hCursor = LoadCursor(NULL, IDC_ARROW);
+	WndClass.hIcon = LoadIcon(NULL, IDI_APPLICATION);
+	WndClass.hInstance = hInstance;
+	WndClass.lpfnWndProc = WndProc;
+	WndClass.lpszClassName = lpszClass;
+	WndClass.lpszMenuName = NULL;
+	WndClass.style = CS_HREDRAW | CS_VREDRAW;
+	RegisterClass(&WndClass);
+
+	hWnd = CreateWindow(lpszClass, lpszClass, WS_OVERLAPPEDWINDOW,
+		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
+		NULL, (HMENU)NULL, hInstance, NULL);
+	ShowWindow(hWnd, nCmdShow);
+
+	while (GetMessage(&Message, NULL, 0, 0)) {
+		TranslateMessage(&Message);
+		DispatchMessage(&Message);
+	}
+	return (int)Message.wParam;
+}
+
+#include <math.h>
+#define BSIZE 30
+
+double Lengthpts(int x1, int y1, int x2, int y2) {
+	return (sqrt((float)((x2 - x1)*(x2 - x1) + (y2 - y1)*(y2 - y1)))); // 두 좌표간의 거리 계산
+}
+BOOL InCircle(int x, int y, int mx, int my) {
+	if (Lengthpts(x, y, mx, my) < BSIZE) return TRUE;
+	else return FALSE;
+}
+
+LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
+{
+
+	HDC hdc;
+	PAINTSTRUCT ps;
+	HBRUSH hBrush, oldBrush;
+
+	static BOOL Sel = FALSE;
+	static BOOL move = FALSE;
+	static double x, y, mx, my;
+	static double fx, fy;
+
+	switch (iMessage) {
+
+	case WM_CREATE:
+		x = 30; y = 30;
+		break;
+
+	case WM_TIMER:
+		x += fx;
+		y += fy;
+		// 10번 움직임
+
+		if (fx > 0)
+		{
+			if (x + fx > mx)
+				x -= x - mx;
+		}
+
+		else if (fx < 0)
+		{
+			if (x + fx < mx)
+				x -= x - mx;
+		}
+
+		if (fy > 0)
+		{
+			if (y + fy > my)
+			{
+				y -= y - my;
+				KillTimer(hWnd, 1);
+			}
+		}
+
+		else if (fy < 0)
+		{
+			if (y + fy < my)
+			{
+				y -= y - my;
+				KillTimer(hWnd, 1);
+			}
+		}
+		// fx,fy 값에 0 이상 값이 남아 있을 경우에 0이 될 때까지 좌표를 이동 시킴
+		InvalidateRect(hWnd, NULL, TRUE); // 화면 초기화
+		break;
+
+	case WM_PAINT:
+		hdc = BeginPaint(hWnd, &ps);
+
+		if (Sel) {
+			hBrush = CreateSolidBrush(RGB(0, 255, 0)); // 녹색
+			oldBrush = (HBRUSH)SelectObject(hdc, hBrush); // 기존색 저장
+			Ellipse(hdc, x - BSIZE, y - BSIZE, x + BSIZE, y + BSIZE); // 원형 그리기
+			SelectObject(hdc, oldBrush); // 녹색 저장
+			DeleteObject(hBrush); // 해제
+		}
+		else
+			Ellipse(hdc, x - BSIZE, y - BSIZE, x + BSIZE, y + BSIZE); // 원형 그리기
+
+		if (move) {
+			MoveToEx(hdc, x, y, NULL); // 직선 시작 지점
+			LineTo(hdc, mx, my); // 직선 그리기
+		}
+		EndPaint(hWnd, &ps);
+		break;
+
+	case WM_LBUTTONDOWN:
+		mx = LOWORD(lParam);
+		my = HIWORD(lParam); // 마우스가 눌렸을 때 좌표
+		if (InCircle(x, y, mx, my)) { // 도형과 마우스 좌표의 충돌 공식
+			Sel = TRUE; // Sel 값 참
+			move = TRUE; // move 값 참
+		}
+		InvalidateRect(hWnd, NULL, TRUE); // 화면 초기화
+		break;
+
+	case WM_LBUTTONUP:
+		if (Sel && move) { // 마우스가 눌렷을 때
+			mx = LOWORD(lParam);
+			my = HIWORD(lParam); // 클릭을 놓았을 때 좌표 저장
+
+			fx = (mx - x) / 10; // 마우스 좌표에서 도형 좌표까지 거리를 10 으로 나워서 fx 에 저장
+			fy = (my - y) / 10; // 마우스 좌표에서 도형 좌표까지 거리를 10 으로 나눠서 fy 에 저장
+			SetTimer(hWnd, 1, 100, NULL); // 타이머 시작
+		}
+		move = FALSE; // move 값 거짓
+ 		Sel = FALSE; // Sel 값 거짓
+		break;
+
+	case WM_MOUSEMOVE:
+		if (move) { 
+			mx = LOWORD(lParam);
+			my = HIWORD(lParam); // 마우스를 움직일 때 좌표 저장
+			InvalidateRect(hWnd, NULL, TRUE); // 화면 초기화
+		}
+		break;
+
+		///////////////////////////////////////////
+	case WM_DESTROY:
+		PostQuitMessage(0);
+		return 0;
+	}
+	return(DefWindowProc(hWnd, iMessage, wParam, lParam));
+}

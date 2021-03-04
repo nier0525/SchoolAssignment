@@ -1,0 +1,134 @@
+﻿// CircularQueue.h
+
+#ifndef CIRCULAR_QUEUE_H
+#define CIRCULAR_QUEUE_H
+
+#include <stdio.h>
+#include <stdlib.h>
+
+typedef int ElementType;
+
+typedef struct tagNode
+{
+	ElementType Data; //큐안의 데이터를 int형으로 저장한다.
+} Node;
+
+typedef struct tagCircularQueue
+{
+	int   Capacity; //큐의 최대크기
+	int   Front;   //큐의 맨앞
+	int   Rear;    //큐의 맨뒤
+	Node* Nodes;   //큐가 가지고 있는 데이터
+} CircularQueue;
+
+void        CQ_CreateQueue(CircularQueue** Queue, int Capacity); //큐생성
+void        CQ_DestroyQueue(CircularQueue* Queue); //큐파괴
+void        CQ_Enqueue(CircularQueue* Queue, ElementType Data); //큐에 데이터삽입
+ElementType CQ_Dequeue(CircularQueue* Queue); //큐에 데이터삭제
+int         CQ_IsEmpty(CircularQueue* Queue); //큐가 비어있는지 확인해주는 함수
+int         CQ_IsFull(CircularQueue* Queue); //큐가 꽉 차있는지 확인해주는 함수
+
+#endif
+
+////////////////////////////
+
+//CircularQueue.c
+
+#include "CircularQueue.h"
+
+void  CQ_CreateQueue(CircularQueue** Queue, int Capacity) //큐를 생성
+{
+	(*Queue) = (CircularQueue*)malloc(sizeof(CircularQueue));
+	(*Queue)->Nodes = (Node*)malloc(sizeof(Node)* (Capacity + 1));
+	(*Queue)->Capacity = Capacity; 
+	(*Queue)->Front = 0; 
+	(*Queue)->Rear = 0; 
+}
+
+void CQ_DestroyQueue(CircularQueue* Queue) //큐를 파괴
+{
+	free(Queue->Nodes); 
+	free(Queue); 
+}
+
+void CQ_Enqueue(CircularQueue* Queue, ElementType Data) //큐에 데이터를 삽입
+{
+	
+
+
+
+
+
+
+}
+
+ElementType CQ_Dequeue(CircularQueue* Queue) 
+{
+	
+
+
+
+
+
+
+}
+
+int CQ_IsEmpty(CircularQueue* Queue) //큐의 front와 rear가 같으면 비어있는 큐
+{
+	return (Queue->Front == Queue->Rear); 
+}
+
+
+int CQ_IsFull(CircularQueue* Queue) 
+{
+	
+
+
+
+
+}
+
+
+
+//////////////////////////////////////
+
+//CircularQueue_main.c
+
+#include "CircularQueue.h"
+
+int main(void)
+{
+	int i;
+	CircularQueue* Queue; 
+
+	CQ_CreateQueue(&Queue, 10); 
+
+	CQ_Enqueue(Queue, 1); 
+	CQ_Enqueue(Queue, 2); 
+	CQ_Enqueue(Queue, 3); 
+	CQ_Enqueue(Queue, 4); 
+
+	for (i = 0; i<3; i++)
+	{
+		printf("Dequeue: %d, ", CQ_Dequeue(Queue));
+		printf("Front:%d, Rear:%d\n", Queue->Front, Queue->Rear); 
+	}
+
+	i = 100;
+	while (CQ_IsFull(Queue) == 0) 
+	{
+		CQ_Enqueue(Queue, i++); 
+	}
+
+	while (CQ_IsEmpty(Queue) == 0) 
+	{
+		printf("Dequeue: %d, ", CQ_Dequeue(Queue)); 
+		printf("Front:%d, Rear:%d\n", Queue->Front, Queue->Rear); 
+	}
+
+	CQ_DestroyQueue(Queue);
+
+	return 0;
+}
+
+////////////////////////////////////

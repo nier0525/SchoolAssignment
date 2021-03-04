@@ -1,0 +1,124 @@
+#include <windows.h>
+
+LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
+HINSTANCE g_hInst;
+HWND hWndMain;
+LPCTSTR lpszClass = TEXT("심재철_2015031090");
+
+int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance
+	, LPSTR lpszCmdParam, int nCmdShow)
+{
+	HWND hWnd;
+	MSG Message;
+	WNDCLASS WndClass;
+	g_hInst = hInstance;
+
+	WndClass.cbClsExtra = 0;
+	WndClass.cbWndExtra = 0;
+	WndClass.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
+	WndClass.hCursor = LoadCursor(NULL, IDC_ARROW);
+	WndClass.hIcon = LoadIcon(NULL, IDI_APPLICATION);
+	WndClass.hInstance = hInstance;
+	WndClass.lpfnWndProc = WndProc;
+	WndClass.lpszClassName = lpszClass;
+	WndClass.lpszMenuName = NULL;
+	WndClass.style = CS_HREDRAW | CS_VREDRAW;
+	RegisterClass(&WndClass);
+	hWnd = CreateWindow(lpszClass, lpszClass, WS_OVERLAPPEDWINDOW,
+		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
+		NULL, (HMENU)NULL, hInstance, NULL);
+	ShowWindow(hWnd, nCmdShow);
+
+	while (GetMessage(&Message, NULL, 0, 0)) {
+		TranslateMessage(&Message);
+		DispatchMessage(&Message);
+	}
+	return (int)Message.wParam;
+}
+#define BSIZE 40
+#define BSIZE2 80
+
+LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
+{
+	HDC hdc;
+	PAINTSTRUCT ps;
+	static int x, y, xStep, yStep, flag;
+	static BOOL red;
+	static RECT rectView;
+
+	HBRUSH hBrush, oldBrush;
+
+	switch (iMsg) {
+	case WM_CREATE:
+		x = 20; y = 20;
+		xStep = 40; yStep = 0;
+		flag = 0;
+		return 0;
+
+	case WM_PAINT:
+		hdc = BeginPaint(hwnd, &ps);
+		if (red) {			// red 값이 참일 경우
+			hBrush = CreateSolidBrush(RGB(255, 0, 0));		// 붉은 면색
+			oldBrush = (HBRUSH)SelectObject(hdc, hBrush);	// 기존색 저장
+		}
+		else {
+			hBrush = CreateSolidBrush(RGB(255, 255, 255));	// 흰색 면색
+			oldBrush = (HBRUSH)SelectObject(hdc, hBrush);	// 기존색 저장
+		}
+
+		Ellipse(hdc, x - 20, y - 20, x + 20, y + 20);
+
+		// 브러쉬 삭제
+		SelectObject(hdc, oldBrush);
+		DeleteObject(hBrush);
+
+		EndPaint(hwnd, &ps);
+		break;
+
+	case WM_KEYDOWN:
+		switch (wParam) {
+
+		case VK_RETURN:
+			flag = 1 - flag;	// 누를때마다 flag 정수 값 0~1 변경
+			if (flag) SetTimer(hwnd, 1, 100, NULL);	// 타이머 시작
+			else KillTimer(hwnd, 1);	// 타이머 종료
+			break;
+
+		case VK_LEFT:
+			red = FALSE;
+			xStep = -40;
+			yStep = 0;
+			break;
+		case VK_RIGHT:
+			red = TRUE;	// red 값 참
+			xStep = 40;
+			yStep = 0;
+			break;
+		case VK_UP:
+			red = FALSE;
+			xStep = 0;
+			yStep = -40;
+			break;
+		case VK_DOWN:
+			red = FALSE;
+			xStep = 0;
+			yStep = 40;
+			break;
+		}
+		break;
+
+	case WM_TIMER:
+		GetClientRect(hwnd, &rectView);	// Rect 값
+		x += xStep; y += yStep; // x,y 좌표가 xStep,yStep 에 맞춰 상승
+		// 창 끝에 닿을 시 제자리로
+		if (x - 20 < rectView.left || x + 20 > rectView.right) x -= xStep; 
+		if (y - 20 < rectView.top || y + 20 > rectView.bottom) y -= yStep;
+		InvalidateRect(hwnd, NULL, TRUE);	// 화면 초기화
+		break;
+
+	case WM_DESTROY:
+		PostQuitMessage(0);
+		return 0;
+	}
+	return(DefWindowProc(hwnd, iMsg, wParam, lParam));
+}

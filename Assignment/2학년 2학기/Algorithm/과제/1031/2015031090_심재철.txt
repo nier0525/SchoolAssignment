@@ -1,0 +1,46 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+
+#define SIZE 20
+
+void Insertion_Sort(int*, int);
+
+int main() {
+	int TOE[SIZE];
+	int h, j, key;
+
+	h = 2;
+
+	srand(time(nullptr));
+
+	for (int i = h - 1; i < SIZE; i++) {
+		TOE[i] = (rand() % 400) + 300;
+	}
+
+	Insertion_Sort(TOE, h);
+
+	for (int i = h - 1; i < SIZE; i++) {
+		printf("%d. %d\n", i, TOE[i]);
+	}
+}
+
+void Insertion_Sort(int* Arr, int Rotate) {
+	int index = Rotate - 1;
+
+	for (Rotate; Rotate < SIZE; Rotate++) {
+		int key = Arr[Rotate];
+		int j = Rotate - 1;
+
+		for (j; j >= index; j--) {
+			if (key < Arr[j]) {
+				Arr[j + 1] = Arr[j];
+			}
+			else {
+				break;
+			}
+		}
+
+		Arr[j + 1] = key;
+	}
+}

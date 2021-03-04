@@ -1,0 +1,258 @@
+#pragma comment (lib, "ws2_32.lib")
+#include <WinSock2.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+#define SERVERIP "127.0.0.1"
+#define SERVERPORT 9000
+#define BUFSIZE 4096
+
+enum RESULT { ID_ERROR = 1, PW_ERROR, LOGIN };
+
+struct _LoginInfo
+{
+	char ID[255];
+	char PW[255];
+};
+
+enum PROTOCOL {
+	INTRO = 1, LOGIN_INFO, LOGIN_RESULT
+};
+
+void err_quit(const char* msg)
+{
+	LPVOID lpmsgbuf;
+	FormatMessage(
+		FORMAT_MESSAGE_ALLOCATE_BUFFER |
+		FORMAT_MESSAGE_FROM_SYSTEM,
+		NULL, WSAGetLastError(),
+		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+		(LPSTR)&lpmsgbuf, 0, NULL);
+
+	MessageBox(NULL, (LPCSTR)lpmsgbuf,
+		msg, MB_ICONERROR);
+	LocalFree(lpmsgbuf);
+	exit(-1);
+}
+
+void err_display(const char* msg)
+{
+	LPVOID lpmsgbuf;
+	FormatMessage(
+		FORMAT_MESSAGE_ALLOCATE_BUFFER |
+		FORMAT_MESSAGE_FROM_SYSTEM,
+		NULL, WSAGetLastError(),
+		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+		(LPSTR)&lpmsgbuf, 0, NULL);
+
+	printf("[%s]%s\n", msg, (LPCSTR)lpmsgbuf);
+	LocalFree(lpmsgbuf);
+}
+
+int recvn(SOCKET sock, char* buf, int len, int flags)
+{
+	int received;
+	char* ptr = buf;
+	int left = len;
+
+	while (left > 0)
+	{
+		received = recv(sock, ptr, left, flags);
+		if (received == SOCKET_ERROR)
+		{
+			return SOCKET_ERROR;
+		}
+		else if (received == 0)
+		{
+			break;
+		}
+
+		left -= received;
+		ptr += received;
+	}
+
+	return (len - left);
+}
+
+void Memcpy_oper(int* size, int* ptr, int len, bool zero) {
+	*size += len;
+	if (!zero) {
+		*ptr += len;
+	}
+}
+
+int main()
+{
+	int retval;
+
+	WSADATA wsa;
+	if (WSAStartup(MAKEWORD(2, 2), &wsa)
+		!= 0)
+	{
+		err_quit("WSAStartUP()");
+	}
+
+	SOCKET sock = socket(AF_INET, SOCK_STREAM, 0);
+	if (sock == INVALID_SOCKET)
+	{
+		err_quit("socket()");
+	}
+
+	SOCKADDR_IN serveraddr;
+	ZeroMemory(&serveraddr, sizeof(serveraddr));
+	serveraddr.sin_family = AF_INET;
+	serveraddr.sin_port = htons(SERVERPORT);
+	serveraddr.sin_addr.s_addr = inet_addr(SERVERIP);
+
+	retval = connect(sock, (SOCKADDR*)&serveraddr,
+		sizeof(serveraddr));
+	if (retval == SOCKET_ERROR)
+	{
+		err_quit("connect()");
+	}
+
+	char buf[BUFSIZE];
+
+	while (1)
+	{
+		int size = 0;
+
+		retval = recvn(sock, (char*)&size, sizeof(int), 0);
+		if (retval == SOCKET_ERROR)
+		{
+			err_display("recv()");
+			break;
+		}
+		else if (retval == 0)
+		{
+			break;
+		}
+
+		retval = recvn(sock, buf, size, 0);
+		if (retval == SOCKET_ERROR)
+		{
+			err_display("recv()");
+			break;
+		}
+		else if (retval == 0)
+		{
+			break;
+		}
+
+		PROTOCOL protocol;
+		char msg[BUFSIZE];
+		int strsize = 0;
+		char* ptr = buf;
+
+		memcpy(&protocol, ptr, sizeof(PROTOCOL));
+		ptr += sizeof(PROTOCOL);
+
+		switch (protocol) {
+		case INTRO:
+			memcpy(&strsize, ptr, sizeof(int));
+			ptr += sizeof(int);
+
+			memcpy(&msg, ptr, strsize);
+
+			msg[strsize] = '\0';
+			printf("\n%s", msg);
+			break;
+
+		case LOGIN_RESULT:
+
+			break;
+		}
+
+		_LoginInfo logininfo;
+		ZeroMemory(&logininfo, sizeof(_LoginInfo));
+
+		printf("ID:");
+		scanf("%s", logininfo.ID);
+		printf("PW:");
+		scanf("%s", logininfo.PW);
+
+		ptr = buf + sizeof(int);
+		protocol = LOGIN_INFO;
+		int logsize[2] = { strlen(logininfo.ID) ,strlen(logininfo.PW) };
+
+		memcpy(ptr, &protocol, sizeof(PROTOCOL));
+		size += sizeof(PROTOCOL);
+		ptr += sizeof(PROTOCOL);
+
+		memcpy(ptr, &logsize[0], sizeof(int));
+		size += sizeof(int);
+		ptr += sizeof(int);
+
+		memcpy(ptr, logininfo.ID, logsize[0]);
+		size += logsize[0];
+		ptr += logsize[0];
+
+		memcpy(ptr, &logsize[1], sizeof(int));
+		size += sizeof(int);
+		ptr += sizeof(int);
+
+		memcpy(ptr, logininfo.PW, logsize[1]);
+		size += logsize[1];
+		ptr = buf;
+
+		memcpy(ptr, &size, sizeof(int));
+
+		retval = send(sock, buf, size + sizeof(int), 0);
+		if (retval == SOCKET_ERROR)
+		{
+			err_display("send()");
+			break;
+		}
+
+		retval = recvn(sock, (char*)&size, sizeof(int), 0);
+		if (retval == SOCKET_ERROR)
+		{
+			err_display("recv()");
+			break;
+		}
+		else if (retval == 0)
+		{
+			break;
+		}
+
+		retval = recvn(sock, buf, size, 0);
+		if (retval == SOCKET_ERROR)
+		{
+			err_display("recv()");
+			break;
+		}
+		else if (retval == 0)
+		{
+			break;
+		}
+
+		RESULT result;
+		ptr = buf;
+
+		memcpy(&protocol, ptr, sizeof(PROTOCOL));
+		ptr += sizeof(PROTOCOL);
+
+		switch (protocol) {
+		case LOGIN_RESULT:
+			memcpy(&strsize, ptr, sizeof(int));
+			ptr += sizeof(int);
+
+			memcpy(msg, ptr, strsize);
+			break;
+		}
+
+
+		printf("%s", msg);
+
+		if (result == LOGIN)
+		{
+			break;
+		}
+	}
+
+	system("pause");
+	closesocket(sock);
+
+	WSACleanup();
+	return 0;
+}

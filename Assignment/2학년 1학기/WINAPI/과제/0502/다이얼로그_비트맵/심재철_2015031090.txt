@@ -1,0 +1,180 @@
+#include <windows.h>
+#include <commctrl.h> 
+#include "resource.h"
+
+LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam);
+BOOL CALLBACK Dlg1(HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam);
+BOOL CALLBACK Dlg2(HWND hDlg2, UINT iMsg, WPARAM wParam, LPARAM lParam);
+
+HINSTANCE hInst;
+HWND DlgMain;
+
+static int sel;
+
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLine, int nCmdShow)
+{
+	HWND 	 hwnd;
+	MSG 	 msg;
+	WNDCLASS WndClass;
+	hInst = hInstance;
+	WndClass.style = CS_HREDRAW | CS_VREDRAW;
+	WndClass.lpfnWndProc = WndProc;
+	WndClass.cbClsExtra = 0;
+	WndClass.cbWndExtra = 0;
+	WndClass.hInstance = hInstance;
+	WndClass.hIcon = LoadIcon(NULL, IDI_APPLICATION);
+	WndClass.hCursor = LoadCursor(NULL, IDC_ARROW);
+	WndClass.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);
+	WndClass.lpszMenuName = MAKEINTRESOURCE(IDR_MENU1);
+	WndClass.lpszClassName = "Window Class Name";
+	RegisterClass(&WndClass);
+	hwnd = CreateWindow("Window Class Name", "Window Title Name",
+		WS_OVERLAPPEDWINDOW,
+		CW_USEDEFAULT,
+		CW_USEDEFAULT,
+		CW_USEDEFAULT,
+		CW_USEDEFAULT,
+		NULL,
+		NULL,
+		hInstance,
+		NULL
+	);
+	ShowWindow(hwnd, nCmdShow);
+	UpdateWindow(hwnd);
+	while (GetMessage(&msg, NULL, 0, 0))
+	{
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
+	}
+	return (int)msg.wParam;
+}
+
+LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
+{
+	HWND hDlg = NULL;
+
+	switch (iMsg)
+	{
+	case WM_CREATE:
+		break;
+	case WM_COMMAND:
+		switch (LOWORD(wParam))
+		{
+		case ID_40001:
+			DialogBox(hInst, MAKEINTRESOURCE(IDD_DIALOG1), hwnd, Dlg1);
+			ShowWindow(hDlg, SW_SHOW);
+			break;
+		}
+		break;
+	case WM_DESTROY:
+		PostQuitMessage(0);
+		break;
+	}
+	return DefWindowProc(hwnd, iMsg, wParam, lParam);
+}
+
+BOOL CALLBACK Dlg1(HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam)
+{
+	static char name[20] = { 0, };
+	static char hobby[20] = { 0, };
+	static char str[100] = { 0, };
+	static int index = 0;
+
+	HWND hDlg2 = NULL;
+
+	switch (iMsg)
+	{
+	case WM_INITDIALOG:
+		sel = 0;
+		return 1;
+
+	case WM_COMMAND:
+		switch (LOWORD(wParam))
+		{
+		case IDOK:
+
+			return 0;
+
+		case IDC_RADIO1:
+			sel = 1;
+			DialogBox(hInst, MAKEINTRESOURCE(IDD_DIALOG2), hDlg, Dlg2);
+			InvalidateRect(DlgMain, nullptr, true);
+			break;
+
+		case IDC_RADIO2:
+			sel = 2;
+			DialogBox(hInst, MAKEINTRESOURCE(IDD_DIALOG2), hDlg, Dlg2);
+			InvalidateRect(DlgMain, nullptr, true);
+			break;
+
+		case IDCANCEL:
+			EndDialog(hDlg, IDCANCEL);
+			return 0;
+		}
+		break;
+	}
+	return 0;
+}
+
+BOOL CALLBACK Dlg2(HWND hDlg2, UINT iMsg, WPARAM wParam, LPARAM lParam)
+{
+	HDC hdc , memdc;
+	PAINTSTRUCT ps;
+	HBITMAP hBitmap, oldBitmap;
+	BITMAP bit;
+	RECT rt;
+	int x, y;
+
+	switch (iMsg)
+	{
+	case WM_INITDIALOG:
+		hDlg2 = DlgMain;
+		x = 0;
+		y = 0;
+		break;
+
+	case WM_PAINT:
+		GetClientRect(hDlg2, &rt);
+		hdc = BeginPaint(hDlg2, &ps);
+		memdc = CreateCompatibleDC(hdc);
+		switch (sel) {
+		case 1:
+			hBitmap = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_BITMAP1));
+			oldBitmap = (HBITMAP)SelectObject(memdc, hBitmap);			
+			break;
+
+		case 2:
+			hBitmap = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_BITMAP2));
+			oldBitmap = (HBITMAP)SelectObject(memdc, hBitmap);
+			break;
+		}
+		GetObject(hBitmap, sizeof(BITMAP), &bit);
+		
+		x = rt.right;
+		y = rt.bottom;
+
+		StretchBlt(hdc, 0, 0, x, y, memdc, 0, 0, bit.bmWidth, bit.bmHeight, SRCCOPY);
+
+		SelectObject(memdc, oldBitmap);
+		DeleteObject(hBitmap);
+		DeleteDC(memdc);
+
+		EndPaint(hDlg2, &ps);
+		break;
+
+	case WM_COMMAND:
+		switch (LOWORD(wParam))
+		{
+		case IDOK3:
+
+		case IDCANCEL3:
+
+		case IDCANCEL:
+			EndDialog(hDlg2, IDCANCEL);
+			return 0;
+
+		}
+		break;
+	}
+	return 0;
+}

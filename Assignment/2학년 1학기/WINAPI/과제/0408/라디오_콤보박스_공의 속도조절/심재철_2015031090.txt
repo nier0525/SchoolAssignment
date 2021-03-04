@@ -1,0 +1,201 @@
+#include <windows.h>
+#include "resource.h"
+
+LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
+HINSTANCE g_hInst;
+HWND hWndMain;
+LPCTSTR lpszClass = TEXT("Ω…¿Á√∂_2015031090");
+
+int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance
+	, LPSTR lpszCmdParam, int nCmdShow)
+{
+	HWND hWnd;
+	MSG Message;
+	WNDCLASS WndClass;
+	g_hInst = hInstance;
+
+	WndClass.cbClsExtra = 0;
+	WndClass.cbWndExtra = 0;
+	WndClass.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
+	WndClass.hCursor = LoadCursor(NULL, IDC_ARROW);
+	WndClass.hIcon = LoadIcon(NULL, IDI_APPLICATION);
+	WndClass.hInstance = hInstance;
+	WndClass.lpfnWndProc = WndProc;
+	WndClass.lpszClassName = lpszClass;
+	WndClass.lpszMenuName = MAKEINTRESOURCE(IDR_MENU1);
+	WndClass.style = CS_HREDRAW | CS_VREDRAW;
+	RegisterClass(&WndClass);
+
+	hWnd = CreateWindow(lpszClass, lpszClass, WS_OVERLAPPEDWINDOW,
+		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
+		NULL, (HMENU)NULL, hInstance, NULL);
+	ShowWindow(hWnd, nCmdShow);
+
+	while (GetMessage(&Message, NULL, 0, 0)) {
+		TranslateMessage(&Message);
+		DispatchMessage(&Message);
+	}
+	return (int)Message.wParam;
+}
+
+HWND hCombo;
+COLORREF Color = RGB(0, 0, 0);
+
+int x, y, s;
+int sel,one,p;
+
+TCHAR *speed[] = { (TCHAR*)TEXT("speed 1"),(TCHAR*)TEXT("speed 2"),(TCHAR*)TEXT("speed 3") };
+#define BSIZE 15
+
+BOOL CALLBACK InfoDlgProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
+{
+	HDC hdc, BackDC, DBDC;
+	PAINTSTRUCT ps;
+	HBRUSH hBrush, oldBrush;
+	HBITMAP DB, oldDB;
+	RECT rt;
+
+	switch (iMessage) {
+
+	case WM_INITDIALOG:
+		x = 50;	y = 50;
+		s = 4;
+		hCombo = GetDlgItem(hDlg, IDC_COMBO1);
+		for (int i = 0; i < 3; i++) {
+			SendMessage(hCombo, CB_ADDSTRING,0,(LPARAM)speed[i]);
+		}
+		return 0;
+		
+	case WM_COMMAND:
+		switch (LOWORD(wParam)) {
+		case IDOK:
+			SetTimer(hDlg, 1, 30, nullptr);
+			return TRUE;
+
+		case IDC_RADIO1:
+			Color = RGB(255, 0, 0);
+			InvalidateRect(hDlg, nullptr, true);
+			break;
+
+		case IDC_RADIO2:
+			Color = RGB(0, 0, 255);
+			InvalidateRect(hDlg, nullptr, true);
+			break;
+
+		case IDCANCEL:
+			KillTimer(hDlg, 1);
+			return TRUE;
+
+		case IDOK2:
+			EndDialog(hDlg, IDCANCEL);
+			return TRUE;
+
+		case IDC_COMBO1:
+			switch (HIWORD(wParam)) {
+			case CBN_SELCHANGE:
+				sel = SendMessage(hCombo, CB_GETCURSEL, 0, 0);
+				if (sel == 0) {
+					s = 6;
+				}
+				if (sel == 1) {
+					s = 8;
+				}
+				if (sel == 2) {
+					s = 10;
+				}
+				break;
+			}
+			break;
+		}
+		break;
+
+	case WM_TIMER:
+		GetClientRect(hDlg, &rt);
+
+		switch (one) {
+		case 0:
+			x -= s; y += s; p = 0;
+			break;
+		case 1:
+			x += s; y -= s; p = 1;
+			break;
+		case 2:
+			x += s; y += s; p = 2;
+			break;
+		case 3:
+			x -= s; y -= s; p = 3;
+			break;
+		}
+
+		switch (p) {
+		case 0:
+			if (x <= rt.left) one = 2;
+			if (y >= rt.bottom) one = 3;
+			break;
+
+		case 1:
+			if (x >= rt.right) one = 3;
+			if (y <= rt.top) one = 2;
+			break;
+
+		case 2:
+			if (x >= rt.right) one = 0;
+			if (y >= rt.bottom) one = 1;
+			break;
+
+		case 3:
+			if (x <= rt.left) one = 1;
+			if (y <= rt.top) one = 0;
+			break;
+		}
+		InvalidateRect(hDlg, nullptr, true);
+		break;
+
+	case WM_PAINT:
+		hdc = BeginPaint(hDlg, &ps);
+
+		hBrush = CreateSolidBrush(Color);
+		oldBrush = (HBRUSH)SelectObject(hdc, hBrush);
+
+		Ellipse(hdc, x + BSIZE, y + BSIZE, x - BSIZE, y - BSIZE);
+
+		SelectObject(hdc, oldBrush);
+		DeleteObject(hBrush);
+
+		EndPaint(hDlg, &ps);
+		break;
+	}
+	return 0;
+}
+
+LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
+{
+	HDC hdc;
+	PAINTSTRUCT ps;
+
+	switch (iMessage) {
+
+	case WM_CREATE:
+		hWndMain = hWnd;
+		return 0;
+
+	case WM_COMMAND:
+		switch (LOWORD(wParam)) {
+		case ID_40001:
+			if (DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG1), hWnd, InfoDlgProc) == IDOK)
+				InvalidateRect(hWnd, NULL, false);
+			break;
+
+		case ID_40002:
+			ExitProcess(0);
+			break;
+		}
+		break;
+
+	case WM_DESTROY:
+		PostQuitMessage(0);
+		return 0;
+	}
+	return(DefWindowProc(hWnd, iMessage, wParam, lParam));
+}
+

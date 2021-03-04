@@ -1,0 +1,103 @@
+package 심재철_2015031090_3A;
+import java.util.Scanner;
+
+public class MiddleTest {
+
+	public static void MiddleTest_1(Scanner scan)
+	{
+		System.out.println("1번 문제 출력");
+		
+		System.out.print("수 입력 : ");
+		int num = scan.nextInt();
+		
+		for (int i = num; i > 0; i--) 
+		{
+			for (int j = i; j > 0; j--)
+			{
+				System.out.print("*");
+			}
+			System.out.println();
+		}
+		System.out.println();
+	}
+	
+	public static void MiddleTest_2(Scanner scan)
+	{
+		System.out.println("2번 문제 출력");
+		
+		System.out.print("두 수 입력 : ");
+		int A = scan.nextInt();
+		int B = scan.nextInt();
+		
+		int Max, Min, Sum = 0; 
+		
+		if (A > B)
+		{
+			Max = A;
+			Min = B;
+		}
+		else
+		{
+			Max = B;
+			Min = A;
+		}
+		
+		for (int i = Min; i <= Max; i++) 
+		{
+			Sum = Sum + i;
+		}
+		
+		System.out.println("합은 " + Sum + " 입니다.");
+		System.out.println();
+	}
+	
+	public static void MiddleTest_3(Scanner scan)
+	{
+		System.out.println("3번 문제 출력");
+		
+		int MonthArray[] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+		int year, month, lastday = 0;
+		
+		System.out.print("년도 입력 (1950~): ");
+		year = scan.nextInt();
+		
+		System.out.print("달 입력 : ");
+		month = scan.nextInt();
+		
+		if (year < 1950 || month > 12 || month <= 0) 
+		{ 
+			System.out.println("잘못된 값을 입력했습니다.");
+			return;
+		}
+		
+		if (year % 4 == 0 && (year % 100 != 0 || year % 400 == 0)) MonthArray[1] = 29;
+		else MonthArray[1] = 28;
+		
+		year--;
+		lastday = 365 * (year - 1950) + year / 4 - year / 100 + year / 400;
+		
+		for (int i = 0; i < month - 1; i++) lastday += MonthArray[i];
+		
+		lastday = (lastday + 5) % 7;
+		
+		System.out.println();
+		System.out.println("     일      월     화      수     목     금     토");
+		for (int i = 0; i < lastday; i++) System.out.print("    ");
+		for (int i = 1; i <= MonthArray[month - 1]; i++)
+		{
+			System.out.printf("%4d", i);
+			if ((i + lastday) % 7 == 0) System.out.println();
+		}
+	}
+	
+	public static void main(String[] args) {
+		System.out.println("2015031090 심재철 3A");
+		System.out.println();
+		Scanner scan = new Scanner(System.in);
+		
+		MiddleTest_1(scan);
+		MiddleTest_2(scan);
+		MiddleTest_3(scan);
+	}
+
+}

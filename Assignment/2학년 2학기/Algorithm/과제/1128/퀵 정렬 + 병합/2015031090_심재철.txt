@@ -1,0 +1,97 @@
+#include <stdio.h>
+#include <Windows.h>
+
+#define SIZE 4
+#define MIN(a,b) ((a < b) ? a : b)
+#define SWAP(x, y, temp) ((temp) = (x), (x) = (y), (y) = (temp));
+
+int Quick_Partition(int*, int, int);
+void Quick_Sort(int*, int, int);
+
+int main() {
+	int Arr_A[SIZE] = { 3, 8, 1, 5 };
+	int Arr_B[SIZE] = { 2, 7, 6, 4 };
+
+	int Arr_C[SIZE * 2] = { 0, };
+
+	int index_a, index_b, index_c;
+	index_a = index_b = index_c = 0;
+
+	Quick_Sort(Arr_A, 0, SIZE - 1);
+	Quick_Sort(Arr_B, 0, SIZE - 1);
+
+	while (1) {
+		int min = MIN(Arr_A[index_a], Arr_B[index_b]);
+		Arr_C[index_c++] = min;
+
+		if (min == Arr_A[index_a]) {
+			index_a++;
+		}
+		else {
+			index_b++;
+		}
+
+		if (index_a == SIZE || index_b == SIZE) {
+			int index = MIN(index_a, index_b);
+
+			if (index == index_a) {
+				for (int i = index_a; i < SIZE; i++) {
+					Arr_C[index_c++] = Arr_A[i];
+				}
+			}
+			else {
+				for (int i = index_b; i < SIZE; i++) {
+					Arr_C[index_c++] = Arr_B[i];
+				}
+			}
+			break;
+		}
+	}
+
+	printf("병합 완료 : ");
+	for (int i = 0; i < SIZE * 2; i++) {
+		printf("%d ", Arr_C[i]);
+	}
+	printf("\n");
+
+	return 0;
+}
+
+int Quick_Partition(int* Arr, int left, int right) {
+	int low, high, pivot;
+
+	low = left + 1;
+	high = right;
+
+	pivot = Arr[left];
+
+	while (1) {
+		if (low <= right && Arr[low] < pivot) {
+			low++;
+			continue;
+		}
+		if (high >= left && Arr[high] > pivot) {
+			high--;
+			continue;
+		}
+
+		if (low > high) {
+			int temp;
+			SWAP(Arr[left], Arr[high], temp);
+			return high;
+		}
+		else {
+			int temp;
+			SWAP(Arr[low], Arr[high], temp);
+		}
+	}
+}
+
+void Quick_Sort(int* Arr, int left, int right) {
+	if (left < right) {
+		int p = Quick_Partition(Arr, left, right);
+
+		Quick_Sort(Arr, left, p - 1);
+		Quick_Sort(Arr, p + 1, right);
+	}
+}

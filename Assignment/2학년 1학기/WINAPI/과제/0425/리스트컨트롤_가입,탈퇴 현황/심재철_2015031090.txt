@@ -1,0 +1,247 @@
+#include <windows.h>
+#include <commctrl.h>
+#include "resource.h"
+
+LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam);
+BOOL CALLBACK Dlg3(HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam);
+HINSTANCE hInst;
+
+HWND hwndmain;
+
+#define UNSELECTED -1
+#define IDC_X 200
+#define IDC_Y 200
+TCHAR str[128];
+int x;
+int y;
+
+
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLine, int nCmdShow)
+{
+	HWND   hwnd;
+	MSG   msg;
+	WNDCLASS WndClass;
+	hInst = hInstance;
+	WndClass.style = CS_HREDRAW | CS_VREDRAW;
+	WndClass.lpfnWndProc = WndProc;
+	WndClass.cbClsExtra = 0;
+	WndClass.cbWndExtra = 0;
+	WndClass.hInstance = hInstance;
+	WndClass.hIcon = LoadIcon(NULL, IDI_APPLICATION);
+	WndClass.hCursor = LoadCursor(NULL, IDC_ARROW);
+	WndClass.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);
+	WndClass.lpszMenuName = MAKEINTRESOURCE(IDR_MENU1);
+	WndClass.lpszClassName = "Window Class Name";
+	RegisterClass(&WndClass);
+	hwnd = CreateWindow("Window Class Name", "Window Title Name",
+		WS_OVERLAPPEDWINDOW,
+		CW_USEDEFAULT,
+		CW_USEDEFAULT,
+		CW_USEDEFAULT,
+		CW_USEDEFAULT,
+		NULL,
+		NULL,
+		hInstance,
+		NULL
+	);
+	ShowWindow(hwnd, nCmdShow);
+	UpdateWindow(hwnd);
+	while (GetMessage(&msg, NULL, 0, 0))
+	{
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
+	}
+	return (int)msg.wParam;
+}
+
+void MakeColumn(HWND hDlg)
+{
+	char *name[2] = { (char*)"이름", (char*)"전화번호" };
+	LVCOLUMN lvCol = { 0, };
+	HWND hList;
+	int i;
+	hList = GetDlgItem(hDlg, IDC_LIST1);
+	lvCol.mask = LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM;
+	lvCol.fmt = LVCFMT_LEFT;
+
+	for (i = 0; i < 2; i++)
+	{
+		lvCol.cx = 90;
+		lvCol.pszText = name[i];
+		lvCol.iSubItem = i;
+		SendMessage(hList, LVM_INSERTCOLUMN, (WPARAM)i, (LPARAM)&lvCol);
+	}
+}
+
+void InsertData(HWND hDlg)
+{
+	int count;
+	LVITEM item;
+	HWND hList;
+	char name[20], phone[20];
+
+	GetDlgItemText(hDlg, IDC_EDIT1, name, 20);
+	GetDlgItemText(hDlg, IDC_EDIT1, str, 128);
+	SetDlgItemText(hDlg, IDC_EDIT1, nullptr);
+	if (strcmp(name, "") == 0) return;
+	GetDlgItemText(hDlg, IDC_EDIT2, phone, 20);
+	SetDlgItemText(hDlg, IDC_EDIT2, nullptr);
+
+	hList = GetDlgItem(hDlg, IDC_LIST1);
+	count = ListView_GetItemCount(hList);
+	item.mask = LVIF_TEXT;
+	item.iItem = count;
+	item.iSubItem = 0;
+	item.pszText = name;
+	ListView_InsertItem(hList, &item);
+	ListView_SetItemText(hList, count, 1, phone);
+}
+
+int SelectItem(HWND hDlg, LPARAM lParam)
+{
+	LPNMLISTVIEW nlv;
+	HWND hList;
+	char name[20], phone[20];
+	hList = GetDlgItem(hDlg, IDC_LIST1);
+	nlv = (LPNMLISTVIEW)lParam;
+	ListView_GetItemText(hList, nlv->iItem, 0, name, 20);
+	SetDlgItemText(hDlg, IDC_EDIT1, name);
+	ListView_GetItemText(hList, nlv->iItem, 1, phone, 20);
+	SetDlgItemText(hDlg, IDC_EDIT2, phone);
+	return(nlv->iItem);
+}
+
+void ModifyItem(HWND hDlg, int selection)
+{
+	static HWND hList;
+	char name[20], phone[20];
+	hList = GetDlgItem(hDlg, IDC_LIST1);
+	GetDlgItemText(hDlg, IDC_EDIT1, name, 20);
+	GetDlgItemText(hDlg, IDC_EDIT2, phone, 20);
+	if (strcmp(name, "") == 0) return;
+	ListView_SetItemText(hList, selection, 0, name);
+	ListView_SetItemText(hList, selection, 1, phone);
+	SetDlgItemText(hDlg, IDC_EDIT1, nullptr);
+	SetDlgItemText(hDlg, IDC_EDIT2, nullptr);
+	return;
+}
+
+void DeleteItem(HWND hDlg, int selection)
+{
+	static HWND hList;
+	hList = GetDlgItem(hDlg, IDC_LIST1);
+	GetDlgItemText(hDlg, IDC_EDIT1, str, 128);
+	ListView_DeleteItem(hList, selection);
+	SetDlgItemText(hDlg, IDC_EDIT1, nullptr);
+	SetDlgItemText(hDlg, IDC_EDIT2, nullptr);
+	return;
+}
+
+BOOL CALLBACK Dlg3(HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam)
+{
+	LPNMHDR hdr;
+	HWND hList;
+	static int selection;
+
+	switch (iMsg)
+	{
+	case WM_INITDIALOG:
+		SetDlgItemText(hDlg, IDC_EDIT1, str);
+
+		selection = UNSELECTED;
+		MakeColumn(hDlg);
+		return 1;
+	case WM_NOTIFY:
+		hdr = (LPNMHDR)lParam;
+		hList = GetDlgItem(hDlg, IDC_LIST1);
+		if (hdr->hwndFrom == hList && hdr->code == LVN_ITEMCHANGING)
+			selection = SelectItem(hDlg, lParam);
+		return 1;
+	case WM_COMMAND:
+		switch (LOWORD(wParam))
+		{
+		case IDOK:
+			InsertData(hDlg);
+			if (!strcmp(str, "")) {
+				break;
+			}
+			y += 30;
+			wsprintf(str, "%s 가 가입했습니다.", str);
+			InvalidateRect(hwndmain, nullptr, false);
+			return 0;
+		case IDOK2:
+			if (selection == UNSELECTED) break;
+			ModifyItem(hDlg, selection);
+			selection = UNSELECTED;
+			return 0;
+		case IDOK3:
+			if (selection == UNSELECTED) break;
+			DeleteItem(hDlg, selection);
+			selection = UNSELECTED;
+			y += 30;
+			wsprintf(str, "%s 가 탈퇴했습니다.", str);
+			InvalidateRect(hwndmain, nullptr, false);
+			return 0;
+
+		case IDCANCEL:
+			DestroyWindow(hDlg);
+			hDlg = NULL;
+			return 0;
+		}
+		break;
+	}
+	return 0;
+}
+
+LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
+{
+	HWND hDlg = NULL;
+	HDC hdc;
+	PAINTSTRUCT ps;
+	RECT rt;
+
+	switch (iMsg)
+	{
+	case WM_CREATE:
+		hwndmain = hwnd;
+		x = 800;
+		y = 100;
+		break;
+
+	case WM_COMMAND:
+		switch (LOWORD(wParam))
+		{
+		case ID_40001:
+			if (!IsWindow(hDlg))
+			{
+				hDlg = CreateDialog(hInst, MAKEINTRESOURCE(IDD_DIALOG1), hwnd, Dlg3);
+				ShowWindow(hDlg, SW_SHOW);
+			}
+			break;
+		}
+		break;
+
+	case WM_PAINT:
+		hdc = BeginPaint(hwnd, &ps);
+		GetClientRect(hwnd, &rt);
+		if (y > rt.bottom - 20) {
+			y = 130;
+			x += 300;
+		}
+		if (x > 1200) {
+			InvalidateRect(hwnd, nullptr, true);
+			x = 800;
+			y = 130;
+		}
+
+		TextOut(hdc, x, y, str, strlen(str));
+		EndPaint(hwnd, &ps);
+		break;
+
+	case WM_DESTROY:
+		PostQuitMessage(0);
+		break;
+	}
+	return DefWindowProc(hwnd, iMsg, wParam, lParam);
+}
+ 

@@ -1,0 +1,38 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+#define MAX(a,b) ((a >= b) ? a : b)
+#define MIN(a,b) ((a <= b) ? a : b)
+
+int Factorial(int n) {
+	if (n == 0) {
+		return 1;
+	}
+
+	else {
+		return (n * (Factorial(n - 1)));
+	}
+}
+
+int main() {
+	int a, b, m, n;
+	int temp;
+
+	printf("지역 A 의 다리를 놓을 자리의 수 : ");
+	scanf("%d", &a);
+
+	printf("지역 B 의 다리를 놓을 자리의 수 : ");
+	scanf("%d", &b);
+
+	m = MAX(a, b);
+	n = MIN(a, b);
+
+	int min = m - n;
+
+	int m_num = Factorial(m);
+	int n_num = Factorial(n);
+
+	temp = m_num / (n_num * Factorial(min));
+
+	printf("다리를 놓을 수 있는 경우의 수 : %d", temp);
+}

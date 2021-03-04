@@ -1,0 +1,44 @@
+#include <stdio.h>
+
+int main() {
+
+	int P[3][6];
+	int Q[6][3];
+
+	int H, C, L;
+	H = 0;
+	L = 0;
+	C = 0;
+
+	printf("P\n");
+
+	for (int x = 0; x < 3; x++) {
+		for (int y = 0; y < 6; y++) {
+			H++;
+			P[x][y] = H;
+
+			printf("%d ", P[x][y]);
+		}
+		printf("\n");
+	}
+
+	printf("\n\nQ\n");
+
+	for (int x = 0; x < 3; x++) {
+		for (int y = 0; y < 6; y++) {
+			Q[C++][L] = P[x][y];
+
+			if (C >= x) {
+				L++;
+				C = 0;
+			}
+		}
+	}
+
+	for (int i = 0; i < 6; i++) {
+		for (int j = 0; j < 3; j++) {
+			printf("%d ,", Q[i][j]);
+		}
+		printf("\n");
+	}
+}

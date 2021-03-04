@@ -1,0 +1,36 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+
+int main() {
+
+	int a, b, c;
+	
+	srand(time(NULL));
+	a = rand() % 100 + 1;
+	c = 1;
+
+	printf("답은 1 ~ 100 사이에 있습니다. \n");
+
+	while (1) {
+		printf("%d번째 입력 : ", c);
+		scanf("%d", &b);
+
+		if (a == b) {
+			printf("%d번째 만에 정답을 맞추셨습니다.\n", c);
+			break;
+		}
+
+		else {
+			if (a > b) {
+				printf("Up!\n");
+			}
+			else {
+				printf("Down!\n");
+			}
+			c++;
+		}
+	}
+
+	return 0;
+}

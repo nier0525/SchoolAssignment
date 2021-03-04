@@ -1,0 +1,194 @@
+#include <windows.h>
+#include "resource.h"
+
+LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
+HINSTANCE g_hInst;
+HWND hWndMain;
+LPCTSTR lpszClass = TEXT("심재철_2015031090");
+
+int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance
+	, LPSTR lpszCmdParam, int nCmdShow)
+{
+	HWND hWnd;
+	MSG Message;
+	WNDCLASS WndClass;
+	g_hInst = hInstance;
+
+	WndClass.cbClsExtra = 0;
+	WndClass.cbWndExtra = 0;
+	WndClass.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
+	WndClass.hCursor = LoadCursor(NULL, IDC_ARROW);
+	WndClass.hIcon = LoadIcon(NULL, IDI_APPLICATION);
+	WndClass.hInstance = hInstance;
+	WndClass.lpfnWndProc = WndProc;
+	WndClass.lpszClassName = lpszClass;
+	WndClass.lpszMenuName = MAKEINTRESOURCE(IDR_MENU1);
+	WndClass.style = CS_HREDRAW | CS_VREDRAW;
+	RegisterClass(&WndClass);
+	hWnd = CreateWindow(lpszClass, lpszClass, WS_OVERLAPPEDWINDOW,
+		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
+		NULL, (HMENU)NULL, hInstance, NULL);
+	ShowWindow(hWnd, nCmdShow);
+
+	while (GetMessage(&Message, NULL, 0, 0)) {
+		TranslateMessage(&Message);
+		DispatchMessage(&Message);
+	}
+	return (int)Message.wParam;
+}
+
+#define BSIZE2 80
+
+LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
+{
+	HDC hdc;
+	PAINTSTRUCT ps;
+	static RECT rt;
+	int i, j;
+	static int x, y , mx, my;
+	static int sx, sy, sel;
+	static BOOL draw = false;
+
+	HBRUSH myB, oldB;
+
+	switch (iMsg) {
+
+	case WM_CREATE:
+		return 0;
+
+	case WM_PAINT:
+		hdc = BeginPaint(hwnd, &ps);
+
+		for (i = 0; i < sx; i++) {	// 가로 8칸
+			for (j = 0; j < sy; j++)	// 세로 4칸
+			{
+
+				SetMapMode(hdc, MM_ANISOTROPIC);
+				SetWindowExtEx(hdc, sx * BSIZE2, sy * BSIZE2, NULL);
+				GetClientRect(hwnd, &rt);
+				SetViewportExtEx(hdc, rt.right, rt.bottom, NULL);
+
+				Rectangle(hdc, i*BSIZE2, j*BSIZE2, (i + 1)*BSIZE2, (j + 1)*BSIZE2);	// 8x4 네모
+			}
+		}
+		EndPaint(hwnd, &ps);
+		break;
+
+	case WM_LBUTTONDOWN:
+		x = LOWORD(lParam);
+		y = HIWORD(lParam);
+		draw = true;
+		mx = x;
+		my = y;
+		break;
+
+	case WM_MOUSEMOVE:
+		hdc = GetDC(hwnd);
+
+		if (draw) {
+			switch (sel) {
+			case 1:
+				SetROP2(hdc, R2_NOTXORPEN);
+				MoveToEx(hdc, x, y, nullptr);
+				Ellipse(hdc, x, y, mx, my);
+				mx = LOWORD(lParam);
+				my = HIWORD(lParam);
+				MoveToEx(hdc, x, y, nullptr);
+				Ellipse(hdc, x, y, mx, my);
+				break;
+
+			case 2:
+				SetROP2(hdc, R2_NOTXORPEN);
+				MoveToEx(hdc, x, y, nullptr);
+				Rectangle(hdc, x, y, mx, my);
+				mx = LOWORD(lParam);
+				my = HIWORD(lParam);
+				MoveToEx(hdc, x, y, nullptr);
+				Rectangle(hdc, x, y, mx, my);
+				break;
+
+			case 3:
+				SetROP2(hdc, R2_NOT);
+				MoveToEx(hdc, x, y, nullptr);
+				LineTo(hdc, mx, my);
+				mx = LOWORD(lParam);
+				my = HIWORD(lParam);
+				MoveToEx(hdc, x, y, nullptr);
+				LineTo(hdc, mx, my);
+				break;
+			}
+		}
+		ReleaseDC(hwnd, hdc);
+		break;
+
+	case WM_LBUTTONUP:
+		draw = false;
+		hdc = GetDC(hwnd);
+
+		switch (sel) {
+		case 1:
+			myB = (HBRUSH)GetStockObject(NULL_BRUSH);
+			oldB = (HBRUSH)SelectObject(hdc, myB);
+			MoveToEx(hdc, x, y, nullptr);
+			Ellipse(hdc, x, y, mx, my);
+			SelectObject(hdc, oldB);
+			DeleteObject(myB);
+			break;
+
+		case 2:
+			myB = (HBRUSH)GetStockObject(NULL_BRUSH);
+			oldB = (HBRUSH)SelectObject(hdc, myB);
+			MoveToEx(hdc, x, y, nullptr);
+			Rectangle(hdc, x, y, mx, my);
+			SelectObject(hdc, oldB);
+			DeleteObject(myB);
+			break;
+
+		case 3:
+			MoveToEx(hdc, x, y, nullptr);
+			LineTo(hdc, mx, my);
+			break;
+		}
+		ReleaseDC(hwnd, hdc);
+		break;
+
+	case WM_RBUTTONDOWN:
+		InvalidateRect(hwnd, NULL, TRUE); // 화면 초기화
+		break;
+
+
+	case WM_COMMAND:
+		switch (LOWORD(wParam)) {
+
+		case ID_40001: // 원
+			sel = 1;
+			break;
+
+		case ID_40002: // 사각형
+			sel = 2;
+			break;
+
+		case ID_40003: // 직선
+			sel = 3;
+			break;
+
+		case ID_40004: // 8x4
+			sx = 8;
+			sy = 4;
+			break;
+
+		case ID_40005: // 16x8
+			sx = 16;
+			sy = 8;
+			break;
+		}
+		InvalidateRect(hwnd, NULL, TRUE);
+		break;
+
+	case WM_DESTROY:
+		PostQuitMessage(0);
+		return 0;
+	}
+
+	return(DefWindowProc(hwnd, iMsg, wParam, lParam));
+}

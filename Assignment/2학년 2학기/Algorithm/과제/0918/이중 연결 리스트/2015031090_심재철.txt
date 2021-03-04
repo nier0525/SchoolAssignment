@@ -1,0 +1,252 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <conio.h>
+
+enum { ADD = 1, DEL, CHANGE, DISPLAY, EXIT };
+
+struct Node {
+	int data;
+	Node* L_link;
+	Node* R_link;
+
+	Node() {
+		data = 0;
+		L_link = nullptr;
+		R_link = nullptr;
+	}
+
+	Node(int temp) {
+		data = temp;
+		L_link = nullptr;
+		R_link = nullptr;
+	}
+};
+
+struct List {
+	Node* head;
+	Node* end;
+};
+
+List* Init();
+void Free(List*);
+
+bool Add(List*);
+bool Change(List*);
+Node* Search(List*, int);
+bool Delete(List*);
+
+void DisPlay(List*);
+
+int main() {
+	List* list = Init();
+
+	int sel = 0;
+	bool flug = false;
+
+	while (1) {
+
+		printf("\n[ 이중 연결 리스트 ]\n\n");
+		printf("1. 추가\n");
+		printf("2. 삭제\n");
+		printf("3. 수정\n");
+		printf("4. 출력\n");
+		printf("5. 종료\n");
+
+		printf("\n선택 : ");
+		scanf("%d", &sel);
+
+		switch (sel) {
+		case ADD:
+			if (Add(list)) {
+				printf("\n값을 정상적으로 추가했습니다.\n");
+			}
+			else {
+				printf("\n오류로 인해 값을 추가하지 못했습니다.\n");
+			}
+			break;
+
+		case DEL:
+			if (Delete(list)) {
+				printf("\n값을 정상적으로 삭제했습니다.\n");
+			}
+			else {
+				printf("\n오류로 인해 값을 삭제하지 못했습니다.\n");
+			}
+			break;
+
+		case CHANGE:
+			if (Change(list)) {
+				printf("\n값을 정상적으로 수정했습니다.\n");
+			}
+			else {
+				printf("\n오류로 인해 값을 수정하지 못했습니다.\n");
+			}
+			break;
+
+		case DISPLAY:
+			DisPlay(list);
+			break;
+
+		case EXIT:
+			flug = true;
+			break;
+		}
+
+		if (flug) {
+			break;
+		}
+
+		printf("\n\n아무키나 누르세요 . . .");
+
+		if (getch()) {
+			system("cls");
+		}
+	}
+
+	Free(list);
+	delete list;
+
+	printf("\n\n프로그램을 종료합니다.\n");
+	return 0;
+}
+
+List* Init() {
+	List* list = new List();
+	
+	list->head = new Node();
+	list->end = new Node();
+	
+	list->head->R_link = list->end;
+	list->head->L_link = list->head;
+	list->end->R_link = list->end;
+	list->end->L_link = list->head;
+
+	return list;
+}
+
+void Free(List* list) {
+	Node* ptr = list->head->R_link;
+	delete list->head;
+
+	while (ptr != list->end) {
+		list->head = ptr;
+		ptr = ptr->R_link;
+		delete list->head;
+	}
+}
+
+bool Add(List* list) {
+	int sel = 0;
+
+	printf("\n[ 리스트 추가 ]\n\n");
+	DisPlay(list);
+
+	printf("\n새로운 값을 추가할 위치를 선택하세요.\n");
+	printf("입력 : ");
+	scanf("%d", &sel);
+	Node* before = Search(list, sel - 1);
+
+	if (before == nullptr) {
+		printf("위치를 잘못 선택했습니다.\n");
+		return false;
+	}
+
+	int data = 0;
+
+	printf("\n값 입력 : ");
+	scanf("%d", &data);
+
+	Node* NewNode = new Node(data);
+
+	NewNode->R_link = before->R_link;
+	NewNode->L_link = before;
+	before->R_link->L_link = NewNode;
+	before->R_link = NewNode;
+
+	return true;
+}
+
+bool Delete(List* list) {
+	int sel = 0;
+
+	printf("\n[ 리스트 삭제 ]\n\n");
+	DisPlay(list);
+
+	printf("\n삭제 할 값의 위치를 선택하세요.\n");
+	printf("입력 : ");
+	scanf("%d", &sel);
+	Node* temp = Search(list, sel);
+
+	if (temp == nullptr) {
+		printf("위치를 잘못 선택했습니다.\n");
+		return false;
+	}
+
+	Node* before = temp->L_link;
+	Node* after = temp->R_link;
+	printf("\n삭제하실 값은 %d 입니다.\n", temp->data);
+	
+	before->R_link = after;
+	after->L_link = before;
+
+	delete temp;
+
+	return true;
+}
+
+bool Change(List* list) {
+	int sel = 0;
+	int value = 0;
+
+	printf("\n[ 리스트 수정 ]\n\n");
+	DisPlay(list);
+
+	printf("\n수정 할 값의 위치를 선택하세요.\n");
+	printf("입력 : ");
+	scanf("%d", &sel);
+	Node* temp = Search(list, sel);
+
+	if (temp == nullptr) {
+		printf("위치를 잘못 선택했습니다.\n");
+		return false;
+	}
+
+	printf("\n수정 할 값을 입력 : ");
+	scanf("%d", &value);
+
+	printf("%d 번째의 %d 값을 ", sel, temp->data);
+	temp->data = value;
+	printf("%d 값으로 정상적으로 수정했습니다.\n", temp->data);
+
+	return true;
+}
+
+void DisPlay(List* list) {
+	Node* ptr = list->head;
+
+	printf("\n[ 리스트 현황 ]");
+	printf("\n\n[ ");
+	while (ptr->R_link != list->end) {
+		ptr = ptr->R_link;
+		printf(" %d ,", ptr->data);
+	}
+	printf(" ]\n", ptr->data);
+}
+
+Node* Search(List* list, int sel) {
+	Node* ptr = list->head;
+
+	if (sel < 0) {
+		return nullptr;
+	}
+
+	for (int i = 0; i < sel; i++) {
+		if (ptr->R_link == list->end) {
+			return nullptr;
+		}
+		ptr = ptr->R_link;
+	}
+
+	return ptr;
+}
+

@@ -1,0 +1,155 @@
+#include "Stack.h"
+#include <conio.h>
+
+#define SIZE 6
+
+//--------------------------------
+
+int Map[SIZE][SIZE];
+
+ArrayStack* Stack = nullptr;
+Position pos , temp;
+
+//--------------------------------
+
+void Init();
+void DrawMap();
+void Secrch();
+
+int main() {
+	Init();
+
+	Secrch();
+
+	AS_DestroyStack(Stack);
+	system("pause");
+	return 0;
+}
+
+void Init() {
+	AS_CreateStack(&Stack, 10);
+
+	for (int i = 0; i < SIZE; i++) {
+		for (int j = 0; j < SIZE; j++) {
+			Map[i][j] = 0;
+		}
+	}
+
+	for (int i = 0; i < SIZE; i++) {
+		Map[0][i] = 1;
+		if (i != 2) {
+			Map[2][i] = 1;
+			Map[3][i] = 1;
+		}
+		Map[5][i] = 1;
+	}
+
+	Map[1][5] = 1;
+	Map[4][0] = 1;
+
+	Map[4][5] = 3;;
+
+	Map[pos.y][pos.x] = 2;
+} 
+
+void DrawMap() {
+	int top = AS_GetSize(Stack);
+
+	for (int i = 0; i < top; i++) {
+		printf("( %d , %d )\n\n", AS_Top(Stack).y, AS_Top(Stack).x);
+		if (i == 0) {
+			pos = AS_Pop(Stack);
+		}
+	}
+
+	for (int i = 0; i < SIZE; i++) {
+		for (int j = 0; j < SIZE; j++) {
+			switch (Map[i][j])
+			{
+			case 0:
+				printf("¡¤ ");
+				break;
+
+			case 1:
+				printf("¡à ");
+				break;
+
+			case 2:
+				printf("¡Ü ");
+				break;
+
+			case 3:
+				printf("¡Ú ");
+				break;
+			}
+		}
+		printf("\n");
+	}
+	printf("-------------------------------\n\n");
+}
+
+void Secrch() {
+	while (1) {
+		for (int i = 0; i < 4; i++) {
+			temp = pos;
+			switch (i) {
+			case 0:
+				if (Map[pos.y + 1][pos.x] == 0) {
+					temp.y++;
+					AS_Push(Stack, temp);
+				}
+				if (Map[pos.y + 1][pos.x] == 3) {
+					printf("[ Complete ]\n\n");
+					Map[pos.y][pos.x] = 2;
+					DrawMap();
+					return;
+				}
+				break;
+
+			case 1:
+				if (Map[pos.y - 1][pos.x] == 0) {
+					temp.y--;
+					AS_Push(Stack, temp);
+				}
+				if (Map[pos.y - 1][pos.x] == 3) {
+					printf("[ Complete ]\n\n");
+					Map[pos.y][pos.x] = 2;
+					DrawMap();
+					return;
+				}
+				break;
+
+			case 2:
+				if (Map[pos.y][pos.x - 1] == 0) {
+					temp.x--;
+					AS_Push(Stack, temp);
+				}
+				if (Map[pos.y][pos.x - 1] == 3) {
+					printf("[ Complete ]\n\n");
+					Map[pos.y][pos.x] = 2;
+					DrawMap();
+					return;
+				}
+				break;
+
+			case 3:
+				if (Map[pos.y][pos.x + 1] == 0) {
+					temp.x++;
+					AS_Push(Stack, temp);
+				}
+				if (Map[pos.y][pos.x + 1] == 3) {
+					printf("[ Complete ]\n\n");
+					Map[pos.y][pos.x] = 2;
+					DrawMap();
+					return;
+				}
+				break;
+			}
+		}
+
+		Map[pos.y][pos.x] = 2;
+		DrawMap();
+
+		getch();
+	}
+}

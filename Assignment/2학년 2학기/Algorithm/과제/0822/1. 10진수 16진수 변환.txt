@@ -1,0 +1,35 @@
+#include <stdio.h>
+
+int main() {
+
+	int a;
+	char b;
+
+	printf("10 진수 -> 16 진수로 변환하는 프로그램 입니다.\n");
+	printf("10 진수를 16 진수로 바꾸려면 [A] 키를 누르고, \n");
+	printf("16 진수를 10 진수로 바꾸려면 [B] 키를 누르세요. \n");
+
+	printf("A 또는 B 를 누르세요 : ");
+	scanf("%c", &b);
+	
+	printf("변환할 숫자를 입력하세요 : ");
+	scanf("%d", &a);
+	
+	char i;
+	printf("test : ");
+	scanf("%c", &i);
+
+	if (b == 'a') {
+		printf("%x\n", a);
+	}
+
+	else if (b == 'b') {
+		printf("%d\n", a);
+	}
+
+	else {
+		printf("[A] 또는 [B] 키만 입력하세요.\n");
+	}
+
+	return 0;
+}

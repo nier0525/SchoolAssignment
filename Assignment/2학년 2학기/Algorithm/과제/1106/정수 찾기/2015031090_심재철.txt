@@ -1,0 +1,45 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+#include <time.h>
+
+#define MAX 555
+
+int main() {
+	int Arr[10];
+	int C, S, G;
+
+	C = MAX;
+	S = G = 0;
+
+	srand(time(nullptr));
+
+	printf("[ 현재 배열에 담긴 절대값 ]\n\n");
+
+	for (int i = 0; i < 10; i++) {
+		Arr[i] = (rand() % 1000) - 500;
+		printf("%d\n", Arr[i]);
+	}
+
+	printf("\n");
+	int N = -1;
+
+	while (N < 9) {
+		N++;
+
+		if (Arr[N] >= 7) {
+			S = Arr[N] - 7;
+		}
+		else {
+			S = 7 - Arr[N];
+		}
+
+		if (C > S) {
+			C = S;
+			G = Arr[N];
+		}
+	}
+
+	printf("정수 7과 가장 가까운 정수 : %d\n", G);
+	return 0;
+}

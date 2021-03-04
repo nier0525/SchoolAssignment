@@ -1,0 +1,61 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+int Arr[20];
+
+bool Oper(int);
+
+int main() {
+
+	Oper(132);
+	Oper(20);
+	Oper(37);
+	Oper(0);
+
+	return 0;
+}
+
+bool Oper(int num) {
+	int index = 2;
+	int count = 0;
+
+	int temp = num;
+
+	printf("입력값 : %d\n", num);
+
+	if (num < 2) {
+		printf("종료 . . . .\n");
+		return true;
+	}
+
+	while (1) {
+		if (temp == index) {
+			if (count == 0) {
+				printf("소수인분해 결과 : 소수\n\n");
+				return false;
+			}
+			else {
+				Arr[count++] = index;
+
+				printf("소수인분해 결과 : ");
+				for (int i = 0; i < count; i++) {
+					printf("%d ", Arr[i]);
+					if (i < count - 1) printf("* ");
+				}
+				printf("\n\n");
+				return true;
+			}
+		}
+
+		if (temp % index == 0) {
+			Arr[count++] = index;
+			temp = temp / index;
+
+			index = 2;
+		}
+
+		else {
+			index++;
+		}
+	}
+}
