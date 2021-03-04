@@ -1,0 +1,188 @@
+#include <windows.h> // 윈도우 헤더파일
+#include <time.h>
+#include "resource.h"
+
+LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM); // CALLBACK 매크로
+HINSTANCE g_hinst;   // 인스턴스 핸들
+LPCTSTR lpszClass = TEXT("심재철_2015031090"); // 제목 표시물에 표시되는 내용
+
+
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdParam, int nCmdShow) // main 함수
+{
+	HWND hWnd; // 윈도우 핸들 선언
+	MSG Message; // 메세지 구조체 변수 선언
+	WNDCLASS WndClass; // Windows Class 구조체 변수 선언
+
+	g_hinst = hInstance;
+	// hInstance 값을 외부에서도 사용할 수 있도록 전역변수에 값을 저장
+
+	WndClass.cbClsExtra = 0; // 예약 영역. 지금은 사용 X
+	WndClass.cbWndExtra = 0; // 예약 영역
+	WndClass.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH); // 윈도우의 배경 색상을 지정
+	WndClass.hCursor = LoadCursor(NULL, IDC_ARROW); // 윈도우의 마우스 포인터 모양을 지정
+	WndClass.hIcon = LoadIcon(NULL, IDI_HAND); // 윈도우의 커서 모양 지정
+	WndClass.hInstance = hInstance; // 윈도우 클래스를 등록하는 프로그램
+	WndClass.lpfnWndProc = WndProc; // 윈도우 메세지 처리 함수 지정
+	WndClass.lpszClassName = lpszClass; // 윈도우 클래스의 이름 지정
+	WndClass.lpszMenuName = MAKEINTRESOURCE(IDR_MENU1); // 이 프로그램의 메뉴 지정
+	WndClass.style = CS_HREDRAW | CS_DBLCLKS | CS_VREDRAW; // 윈도우의 스타일을 정의
+
+	RegisterClass(&WndClass); // WNDCLASS 구조체의 번지를 전달
+
+	// 윈도우를 생성하고 창에 표시하는 기능을 수행
+	hWnd = CreateWindow(lpszClass, lpszClass, WS_OVERLAPPEDWINDOW, /*CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT*/
+		300, 100, 800, 600, NULL, (HMENU)NULL, hInstance, NULL);
+
+	ShowWindow(hWnd, nCmdShow);
+
+	// 메세지 루프를 실행
+	while (GetMessage(&Message, NULL, 0, 0)) {  // Queue 에 있는 메시지를
+		TranslateMessage(&Message); // 키보드를 입력 메시지를 가공하여 프로그램을
+									// 사용할 수 있도록
+		DispatchMessage(&Message);  // 메세지를 윈도우의 메세지 처리 함수
+
+	}
+
+	return (int)Message.wParam; // 탈출 코드. 프로그램 종료
+}
+#include <math.h>
+#define SIZE 20
+
+LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
+{
+
+	struct one {
+		int x, y, r, g, b;
+		BOOL bone;
+	}; // 생성할 원의 클라스
+
+	HDC hdc;
+	PAINTSTRUCT ps;
+	static RECT rt;
+	HPEN hPen, oldPen;
+	HBRUSH hBrush, oldBrush;
+
+	static int check = 0;
+	static one one[100];
+	static BOOL ENTER = FALSE;
+	static BOOL ONE = TRUE;
+	static BOOL NEMO = FALSE;
+	static int count = 5;
+	static int speed = 10;
+
+	switch (iMessage) {
+
+
+	case WM_SIZE:
+		GetClientRect(hWnd, &rt); // 이동 시 창크기를 받음
+		return 0;
+
+	case WM_COMMAND:
+		switch (LOWORD(wParam)) {
+		case ID_FILE_Start:
+			SetTimer(hWnd, 1, 100, NULL); // 타이머 시작
+			ENTER = TRUE; // for 문을 위한 BOOL
+			break;
+		case ID_FILE_Stop:
+			KillTimer(hWnd, 1); // 타이머 정지
+			break;
+		case ID_plus1:
+			count += 1; // 원 개수 증가
+			break;
+
+		case ID_plus5:
+			count += 5;
+			break;
+
+		case ID_plus10:
+			count += 10;
+			break;
+
+		case ID_down1:
+			count -= 1; // 원 개수 감소
+			break;
+
+		case ID_down5:
+			count -= 5;
+			break;
+
+		case ID_down10:
+			count -= 10;
+			break;
+
+		case ID_up:
+			speed += 5; // 원 속도 증가
+			break;
+
+		case ID_down:
+			speed -= 5; // 원 속도 감소
+			break;
+
+		case ID_one:
+			ONE = TRUE;
+			NEMO = FALSE;
+			break;
+
+		case ID_nemo:
+			ONE = FALSE;
+			NEMO = TRUE;
+			break;
+
+		case ID_FILE_END:
+			DestroyWindow(hWnd); // 종료
+			break;
+		}
+		return 0;
+
+
+
+	case WM_PAINT:
+		GetClientRect(hWnd, &rt);
+		hdc = BeginPaint(hWnd, &ps);
+		if (ENTER) // 엔터가 눌렸을 때 실행
+		{
+			for (int i = 0; i < count; i++) {
+
+				one[i].y += speed; // y 좌표로 +10 지속적인 이동
+				hBrush = CreateSolidBrush(RGB(one[i].r, one[i].g, one[i].b)); // 면적 색
+				oldBrush = (HBRUSH)SelectObject(hdc, hBrush); // 기존색 저장
+				
+				if (ONE) {
+					Ellipse(hdc, one[i].x - SIZE, one[i].y - SIZE, one[i].x + SIZE, one[i].y + SIZE); // 원형 생성
+				}
+				if (NEMO) {
+					Rectangle(hdc, one[i].x - SIZE, one[i].y - SIZE, one[i].x + SIZE, one[i].y + SIZE); // 네모 생성
+				}
+				if (one[i].y > rt.bottom)
+				{
+					one[i].x = rand() % rt.right - SIZE; // 회귀시 x 좌표 랜덤 지정
+					one[i].y = 10; // 창 끝에 닿을 시 y축 10 좌표로 회귀
+				}
+				SelectObject(hdc, oldBrush); // 기존 색 선택
+				DeleteObject(hBrush); // 색 삭제
+			}
+		}
+		EndPaint(hWnd, &ps);
+		return 0;
+
+	case WM_DESTROY:
+		PostQuitMessage(0);
+		return 0;
+
+	case WM_TIMER:
+		if (!one[check].bone)
+		{
+			one[check].bone = TRUE; // 원형 생성
+			one[check].x = rand() % rt.right - SIZE; // 생성되는 원형들의 x축 랜덤 좌표
+			one[check].y = 10; // 생성되는 원형들의 y축 고정 좌표
+			one[check].r = rand() % 255 + 1;
+			one[check].g = rand() % 255 + 1;
+			one[check].b = rand() % 255 + 1; // 색깔 랜덤 지정
+		}
+		if (check == count) check = 0; // check 가 count 변수 값 이상 일 시 0으로 초기화
+		check++; // check 정수 상승
+		InvalidateRect(hWnd, NULL, TRUE);
+		return 0;
+	}
+	return (DefWindowProc(hWnd, iMessage, wParam, lParam));
+}
